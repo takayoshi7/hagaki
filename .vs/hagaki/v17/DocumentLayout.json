@@ -1,0 +1,70 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\takahashi\\source\\repos\\hagaki\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{F6642F8E-3657-4758-BA2D-9720501FF096}|hagaki\\hagaki.csproj|C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\my_function.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F6642F8E-3657-4758-BA2D-9720501FF096}|hagaki\\hagaki.csproj|solutionrelative:hagaki\\my_function.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F6642F8E-3657-4758-BA2D-9720501FF096}|hagaki\\hagaki.csproj|c:\\users\\takahashi\\source\\repos\\hagaki\\hagaki\\frm0100_in_data.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F6642F8E-3657-4758-BA2D-9720501FF096}|hagaki\\hagaki.csproj|solutionrelative:hagaki\\frm0100_in_data.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F6642F8E-3657-4758-BA2D-9720501FF096}|hagaki\\hagaki.csproj|C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\class\\cls_dbconn.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F6642F8E-3657-4758-BA2D-9720501FF096}|hagaki\\hagaki.csproj|solutionrelative:hagaki\\class\\cls_dbconn.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Cls_DBConn.cs",
+              "DocumentMoniker": "C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\Class\\Cls_DBConn.cs",
+              "RelativeDocumentMoniker": "hagaki\\Class\\Cls_DBConn.cs",
+              "ToolTip": "C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\Class\\Cls_DBConn.cs",
+              "RelativeToolTip": "hagaki\\Class\\Cls_DBConn.cs",
+              "ViewState": "AQIAAMQBAAAAAAAAAAAEwCcCAAAjAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-02-07T06:27:24.248Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "My_Function.cs",
+              "DocumentMoniker": "C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\My_Function.cs",
+              "RelativeDocumentMoniker": "hagaki\\My_Function.cs",
+              "ToolTip": "C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\My_Function.cs",
+              "RelativeToolTip": "hagaki\\My_Function.cs",
+              "ViewState": "AQIAAG4AAAAAAAAAAAAcwIMAAAANAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-02-07T04:09:54.513Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Frm0100_IN_DATA.cs",
+              "DocumentMoniker": "C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\Frm0100_IN_DATA.cs",
+              "RelativeDocumentMoniker": "hagaki\\Frm0100_IN_DATA.cs",
+              "ToolTip": "C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\Frm0100_IN_DATA.cs",
+              "RelativeToolTip": "hagaki\\Frm0100_IN_DATA.cs",
+              "ViewState": "AQIAAJAAAAAAAAAAAAAowPEAAACWAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-02-06T06:31:36.641Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

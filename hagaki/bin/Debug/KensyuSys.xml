@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="shift_jis"?>
+<SETTING>
+  <!-- 
+;SERVER   :SQLSERVERのIP　又は　PC名
+;DATABASE :DB名称
+;ID       :接続ID
+;PASSWORD :接続パスワード
+-->
+  <DB>
+    <SERVER>パソコン名</SERVER>
+    <DATABASE>KENSYU_DB</DATABASE>
+    <ID>KENSYU_USER</ID>
+    <PASSWORD>KENSYU1234</PASSWORD>
+  </DB>
+  <!-- 
+;■■■■■■■■■■■■■■■■■■■■■■■
+;パス情報
+;■■■■■■■■■■■■■■■■■■■■■■■
+;OUT_IN_ERROR_FLDPATH: データ取込時エラーファイル出力先
+;OUT_NG_FLDPATH：NG票出力先
+;OUT_HISO_FLDPATH：配送データ出力先
+;OUT_REPORT_FLDPATH：報告書出力先
+-->
+  <DIR>
+    <LOG>C:\Users\yuuto.adachi\Desktop\研修課題集\研修課題\研修002\出力ファイル\</LOG>
+    <HAGAKI_FLDPATH>C:\test\入力ファイル\</HAGAKI_FLDPATH>
+    <EFFECT_DIR>C:\test\</EFFECT_DIR>
+    <OUT_IN_ERROR_FLDPATH>C:\test\取込エラー\</OUT_IN_ERROR_FLDPATH>
+    <OUT_NG_FLDPATH>C:\test\NG票\</OUT_NG_FLDPATH>
+    <OUT_HISO_FLDPATH>C:\test\配送データ\</OUT_HISO_FLDPATH>
+    <OUT_REPORT_FLDPATH>C:\test\報告書\</OUT_REPORT_FLDPATH>
+  </DIR>
+  <!-- 
+;■■■■■■■■■■■■■■■■■■■■■■■
+;その他パス情報
+;■■■■■■■■■■■■■■■■■■■■■■■
+
+;TEMPLETE：雛型フォルダ
+-->
+  <ELSE_PATH>
+    <TEMPLETE>C:\test\雛型\</TEMPLETE>
+  </ELSE_PATH>
+</SETTING>
