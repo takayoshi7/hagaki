@@ -242,14 +242,15 @@ namespace hagaki.Class
         #endregion
 
         #region レコード数を取得(DCount)
-        // 機能　： レコード数を取得する
-        // 引数　： ref SqlConnection Conn - コネクション
-        //         : string Field - フィールド名
-        //         : string Table - テーブル名
-        //         : string Filter - WHERE句
-        //         : string Func - 集計関数
-        // 戻り値： 成功 レコード数, 失敗 0
-        public int DCount(ref SqlConnection Conn, string Field, string Table, string Filter = "")
+        /// <summary>
+        /// レコード数を取得する
+        /// </summary>
+        /// <param name="Conn">コネクション</param>
+        /// <param name="Field">フィールド名</param>
+        /// <param name="Table">テーブル名</param>
+        /// <param name="Filter">WHERE句</param>
+        /// <returns>成功 レコード数, 失敗 0</returns>
+        public int DCount(SqlConnection Conn, string Field, string Table, string Filter = "")
         {
             return int.Parse(FuncSQL(ref Conn, Field, Table, Filter, "Count"));
         }

@@ -29,7 +29,6 @@
         private void InitializeComponent()
         {
             this.OutputPathLabel = new System.Windows.Forms.Label();
-            this.InputDataPathLabel = new System.Windows.Forms.Label();
             this.Panel1 = new System.Windows.Forms.Panel();
             this.DB_Size_Error = new System.Windows.Forms.Label();
             this.ReceptionDate_Error = new System.Windows.Forms.Label();
@@ -57,6 +56,7 @@
             this.OutputButton_DataImport = new System.Windows.Forms.Button();
             this.ReferenceButton_DataImport = new System.Windows.Forms.Button();
             this.InputDataLabel = new System.Windows.Forms.Label();
+            this.InputDataPathTextBox = new System.Windows.Forms.TextBox();
             this.Panel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -69,16 +69,6 @@
             this.OutputPathLabel.Name = "OutputPathLabel";
             this.OutputPathLabel.Size = new System.Drawing.Size(378, 39);
             this.OutputPathLabel.TabIndex = 20;
-            // 
-            // InputDataPathLabel
-            // 
-            this.InputDataPathLabel.BackColor = System.Drawing.SystemColors.ControlLight;
-            this.InputDataPathLabel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.InputDataPathLabel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.InputDataPathLabel.Location = new System.Drawing.Point(29, 50);
-            this.InputDataPathLabel.Name = "InputDataPathLabel";
-            this.InputDataPathLabel.Size = new System.Drawing.Size(378, 23);
-            this.InputDataPathLabel.TabIndex = 19;
             // 
             // Panel1
             // 
@@ -114,7 +104,7 @@
             // 
             this.DB_Size_Error.BackColor = System.Drawing.SystemColors.Window;
             this.DB_Size_Error.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.DB_Size_Error.Location = new System.Drawing.Point(282, 199);
+            this.DB_Size_Error.Location = new System.Drawing.Point(305, 199);
             this.DB_Size_Error.Name = "DB_Size_Error";
             this.DB_Size_Error.Size = new System.Drawing.Size(50, 16);
             this.DB_Size_Error.TabIndex = 18;
@@ -124,7 +114,7 @@
             // 
             this.ReceptionDate_Error.BackColor = System.Drawing.SystemColors.Window;
             this.ReceptionDate_Error.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.ReceptionDate_Error.Location = new System.Drawing.Point(282, 180);
+            this.ReceptionDate_Error.Location = new System.Drawing.Point(305, 180);
             this.ReceptionDate_Error.Name = "ReceptionDate_Error";
             this.ReceptionDate_Error.Size = new System.Drawing.Size(50, 16);
             this.ReceptionDate_Error.TabIndex = 17;
@@ -134,7 +124,7 @@
             // 
             this.Duplication_Error.BackColor = System.Drawing.SystemColors.Window;
             this.Duplication_Error.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.Duplication_Error.Location = new System.Drawing.Point(282, 160);
+            this.Duplication_Error.Location = new System.Drawing.Point(305, 160);
             this.Duplication_Error.Name = "Duplication_Error";
             this.Duplication_Error.Size = new System.Drawing.Size(50, 16);
             this.Duplication_Error.TabIndex = 16;
@@ -144,7 +134,7 @@
             // 
             this.Imported_Error.BackColor = System.Drawing.SystemColors.Window;
             this.Imported_Error.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.Imported_Error.Location = new System.Drawing.Point(282, 140);
+            this.Imported_Error.Location = new System.Drawing.Point(305, 140);
             this.Imported_Error.Name = "Imported_Error";
             this.Imported_Error.Size = new System.Drawing.Size(50, 16);
             this.Imported_Error.TabIndex = 15;
@@ -154,7 +144,7 @@
             // 
             this.ControlNumber_Error.BackColor = System.Drawing.SystemColors.Window;
             this.ControlNumber_Error.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.ControlNumber_Error.Location = new System.Drawing.Point(282, 120);
+            this.ControlNumber_Error.Location = new System.Drawing.Point(305, 120);
             this.ControlNumber_Error.Name = "ControlNumber_Error";
             this.ControlNumber_Error.Size = new System.Drawing.Size(50, 16);
             this.ControlNumber_Error.TabIndex = 14;
@@ -164,7 +154,7 @@
             // 
             this.Layout_Error.BackColor = System.Drawing.SystemColors.Window;
             this.Layout_Error.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.Layout_Error.Location = new System.Drawing.Point(282, 100);
+            this.Layout_Error.Location = new System.Drawing.Point(305, 100);
             this.Layout_Error.Name = "Layout_Error";
             this.Layout_Error.Size = new System.Drawing.Size(50, 16);
             this.Layout_Error.TabIndex = 13;
@@ -174,7 +164,7 @@
             // 
             this.NG_Count.BackColor = System.Drawing.SystemColors.Window;
             this.NG_Count.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.NG_Count.Location = new System.Drawing.Point(282, 60);
+            this.NG_Count.Location = new System.Drawing.Point(305, 60);
             this.NG_Count.Name = "NG_Count";
             this.NG_Count.Size = new System.Drawing.Size(50, 16);
             this.NG_Count.TabIndex = 12;
@@ -184,7 +174,7 @@
             // 
             this.OK_Count.BackColor = System.Drawing.SystemColors.Window;
             this.OK_Count.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.OK_Count.Location = new System.Drawing.Point(282, 40);
+            this.OK_Count.Location = new System.Drawing.Point(305, 40);
             this.OK_Count.Name = "OK_Count";
             this.OK_Count.Size = new System.Drawing.Size(50, 16);
             this.OK_Count.TabIndex = 11;
@@ -194,7 +184,7 @@
             // 
             this.Total_Count.BackColor = System.Drawing.SystemColors.Window;
             this.Total_Count.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.Total_Count.Location = new System.Drawing.Point(282, 20);
+            this.Total_Count.Location = new System.Drawing.Point(305, 20);
             this.Total_Count.Name = "Total_Count";
             this.Total_Count.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.Total_Count.Size = new System.Drawing.Size(50, 16);
@@ -207,7 +197,7 @@
             this.Panel10.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.Panel10.Location = new System.Drawing.Point(19, 216);
             this.Panel10.Name = "Panel10";
-            this.Panel10.Size = new System.Drawing.Size(331, 1);
+            this.Panel10.Size = new System.Drawing.Size(356, 1);
             this.Panel10.TabIndex = 9;
             // 
             // Panel9
@@ -216,7 +206,7 @@
             this.Panel9.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.Panel9.Location = new System.Drawing.Point(19, 197);
             this.Panel9.Name = "Panel9";
-            this.Panel9.Size = new System.Drawing.Size(331, 1);
+            this.Panel9.Size = new System.Drawing.Size(356, 1);
             this.Panel9.TabIndex = 9;
             // 
             // Panel8
@@ -225,7 +215,7 @@
             this.Panel8.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.Panel8.Location = new System.Drawing.Point(19, 177);
             this.Panel8.Name = "Panel8";
-            this.Panel8.Size = new System.Drawing.Size(331, 1);
+            this.Panel8.Size = new System.Drawing.Size(356, 1);
             this.Panel8.TabIndex = 9;
             // 
             // Panel7
@@ -234,7 +224,7 @@
             this.Panel7.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.Panel7.Location = new System.Drawing.Point(19, 157);
             this.Panel7.Name = "Panel7";
-            this.Panel7.Size = new System.Drawing.Size(331, 1);
+            this.Panel7.Size = new System.Drawing.Size(356, 1);
             this.Panel7.TabIndex = 8;
             // 
             // Panel6
@@ -243,7 +233,7 @@
             this.Panel6.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.Panel6.Location = new System.Drawing.Point(19, 137);
             this.Panel6.Name = "Panel6";
-            this.Panel6.Size = new System.Drawing.Size(331, 1);
+            this.Panel6.Size = new System.Drawing.Size(356, 1);
             this.Panel6.TabIndex = 7;
             // 
             // Panel5
@@ -252,7 +242,7 @@
             this.Panel5.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.Panel5.Location = new System.Drawing.Point(19, 117);
             this.Panel5.Name = "Panel5";
-            this.Panel5.Size = new System.Drawing.Size(331, 1);
+            this.Panel5.Size = new System.Drawing.Size(356, 1);
             this.Panel5.TabIndex = 6;
             // 
             // Panel4
@@ -261,7 +251,7 @@
             this.Panel4.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.Panel4.Location = new System.Drawing.Point(19, 77);
             this.Panel4.Name = "Panel4";
-            this.Panel4.Size = new System.Drawing.Size(331, 1);
+            this.Panel4.Size = new System.Drawing.Size(356, 1);
             this.Panel4.TabIndex = 5;
             // 
             // Panel3
@@ -270,7 +260,7 @@
             this.Panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.Panel3.Location = new System.Drawing.Point(19, 57);
             this.Panel3.Name = "Panel3";
-            this.Panel3.Size = new System.Drawing.Size(331, 1);
+            this.Panel3.Size = new System.Drawing.Size(356, 1);
             this.Panel3.TabIndex = 4;
             // 
             // Panel2
@@ -279,7 +269,7 @@
             this.Panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.Panel2.Location = new System.Drawing.Point(19, 37);
             this.Panel2.Name = "Panel2";
-            this.Panel2.Size = new System.Drawing.Size(331, 1);
+            this.Panel2.Size = new System.Drawing.Size(356, 1);
             this.Panel2.TabIndex = 3;
             // 
             // RichTextBox2
@@ -287,7 +277,7 @@
             this.RichTextBox2.BackColor = System.Drawing.SystemColors.Window;
             this.RichTextBox2.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.RichTextBox2.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.RichTextBox2.Location = new System.Drawing.Point(328, 18);
+            this.RichTextBox2.Location = new System.Drawing.Point(352, 18);
             this.RichTextBox2.Name = "RichTextBox2";
             this.RichTextBox2.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
             this.RichTextBox2.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.None;
@@ -303,7 +293,7 @@
             this.RichTextBox1.Location = new System.Drawing.Point(19, 18);
             this.RichTextBox1.Name = "RichTextBox1";
             this.RichTextBox1.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.None;
-            this.RichTextBox1.Size = new System.Drawing.Size(241, 199);
+            this.RichTextBox1.Size = new System.Drawing.Size(270, 199);
             this.RichTextBox1.TabIndex = 1;
             this.RichTextBox1.Text = "取込総件数\n取込後OK件数\n取込後NG件数\n\nレイアウト\n事務局管理番号不備\n既に取込済みの事務局管理番号\n事務局管理番号がファイル内で重複\n受付日が不備\nDBサ" +
     "イズエラー";
@@ -393,13 +383,26 @@
             this.InputDataLabel.TabIndex = 12;
             this.InputDataLabel.Text = "入力ﾃﾞｰﾀ";
             // 
+            // InputDataPathTextBox
+            // 
+            this.InputDataPathTextBox.BackColor = System.Drawing.SystemColors.ControlLight;
+            this.InputDataPathTextBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.InputDataPathTextBox.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.InputDataPathTextBox.Location = new System.Drawing.Point(28, 50);
+            this.InputDataPathTextBox.Multiline = true;
+            this.InputDataPathTextBox.Name = "InputDataPathTextBox";
+            this.InputDataPathTextBox.ReadOnly = true;
+            this.InputDataPathTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.InputDataPathTextBox.Size = new System.Drawing.Size(393, 23);
+            this.InputDataPathTextBox.TabIndex = 21;
+            // 
             // Frm0100_IN_DATA
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(544, 521);
+            this.Controls.Add(this.InputDataPathTextBox);
             this.Controls.Add(this.OutputPathLabel);
-            this.Controls.Add(this.InputDataPathLabel);
             this.Controls.Add(this.Panel1);
             this.Controls.Add(this.EndButton_DataImport);
             this.Controls.Add(this.ImportButton_DataImport);
@@ -407,9 +410,11 @@
             this.Controls.Add(this.OutputButton_DataImport);
             this.Controls.Add(this.ReferenceButton_DataImport);
             this.Controls.Add(this.InputDataLabel);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Name = "Frm0100_IN_DATA";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "ｱﾝｹｰﾄ集計 & 謝礼発送事務局/データ取込";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Frm0100_IN_DATA_FormClosing);
             this.Load += new System.EventHandler(this.Frm0100_IN_DATA_Load);
             this.Panel1.ResumeLayout(false);
             this.ResumeLayout(false);
@@ -420,7 +425,6 @@
         #endregion
 
         internal System.Windows.Forms.Label OutputPathLabel;
-        internal System.Windows.Forms.Label InputDataPathLabel;
         internal System.Windows.Forms.Panel Panel1;
         internal System.Windows.Forms.Label DB_Size_Error;
         internal System.Windows.Forms.Label ReceptionDate_Error;
@@ -448,5 +452,6 @@
         internal System.Windows.Forms.Button OutputButton_DataImport;
         internal System.Windows.Forms.Button ReferenceButton_DataImport;
         internal System.Windows.Forms.Label InputDataLabel;
+        private System.Windows.Forms.TextBox InputDataPathTextBox;
     }
 }
