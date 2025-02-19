@@ -11,6 +11,7 @@ using hagaki.StaticClass;
 using Microsoft.VisualBasic;
 using System.Collections;
 using System.Reflection.Emit;
+using System.Windows.Forms;
 
 namespace hagaki
 {
@@ -55,6 +56,7 @@ namespace hagaki
             ErrCd
         }
 
+        // 取り込み不可エラー
         public enum ErrorCd
         {
             NoError,
@@ -66,7 +68,28 @@ namespace hagaki
             DBSizeError
         }
 
+        // 状態区分
+        public enum JyotaiKb
+        {
+            Ok,
+            Ng,
+            hold,
+            cancel
+        }
 
+        // NG票出力区分
+        public enum NgOutKb
+        {
+            Un,
+            Done
+        }
+
+        // 配送データ出力区分
+        public enum HisoOutKg
+        {
+            Un,
+            Done
+        }
         #endregion
 
         #region 項目数チェック
@@ -456,6 +479,44 @@ namespace hagaki
             return 0;
         }
         #endregion
+
+        #region 数値以外入力制限
+        /// <summary>
+        /// 数値以外を入力できないようにする
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        public void NumTextKeyPress(object sender, KeyPressEventArgs e)
+        {
+            // バックスペースまたはデリートであれば終了してそのまま処理
+            if (e.KeyChar == (char)Keys.Back || e.KeyChar == (char)Keys.Delete)
+            {
+                return;
+            }
+
+            // 押されたキーが数値かチェック
+            long checkNum = StCls_Check.CHF_Decimal(e.KeyChar);
+
+            // 数値でなければ入力不可
+            if (checkNum != 0)
+            {
+                e.Handled = true;
+            }
+        }
+        #endregion
+
+
+        // 半角変換を行うメソッド（簡易的な方法）
+        private string ConvertToHalfWidth(string input)
+        {
+            // ここでは簡易的にToUpper()を使って半角変換を代用していますが、
+            // 必要に応じて実際の半角変換ロジックに置き換えてください
+            return input.ToUpper(); // 例: 半角変換に適した方法に変更
+        }
+
+
+
+
 
         #region 値の強制変換
         /// <summary>

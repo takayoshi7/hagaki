@@ -98,7 +98,7 @@ namespace hagaki
                         Frm0300_OUT_HISO_DATA.ShowDialog();
                         break;
                     case "Search_Menu":
-                        Frm0400_SEARCH Frm0400_SEARCH = new Frm0400_SEARCH();
+                        Frm0400_SEARCH Frm0400_SEARCH = new Frm0400_SEARCH(connectionString);
                         Frm0400_SEARCH.ShowDialog();
                         break;
                     case "OutputReport_Menu":
