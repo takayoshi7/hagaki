@@ -90,7 +90,7 @@ namespace hagaki
                         Frm0100_IN_DATA.ShowDialog();
                         break;
                     case "OutputNG_Menu":
-                        Frm0200_OUT_NG_DATA Frm0200_OUT_NG_DATA = new Frm0200_OUT_NG_DATA();
+                        Frm0200_OUT_NG_DATA Frm0200_OUT_NG_DATA = new Frm0200_OUT_NG_DATA(connectionString);
                         Frm0200_OUT_NG_DATA.ShowDialog();
                         break;
                     case "OutputDeliveryData_Menu":

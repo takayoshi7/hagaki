@@ -100,20 +100,21 @@
             this.UpdateButton.BackColor = System.Drawing.SystemColors.GradientActiveCaption;
             this.UpdateButton.FlatAppearance.BorderSize = 0;
             this.UpdateButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.UpdateButton.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.UpdateButton.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.UpdateButton.Location = new System.Drawing.Point(669, 554);
             this.UpdateButton.Name = "UpdateButton";
             this.UpdateButton.Size = new System.Drawing.Size(90, 46);
             this.UpdateButton.TabIndex = 111;
             this.UpdateButton.Text = "更新";
             this.UpdateButton.UseVisualStyleBackColor = false;
+            this.UpdateButton.Click += new System.EventHandler(this.UpdateButton_Click);
             // 
             // EndButton
             // 
             this.EndButton.BackColor = System.Drawing.Color.Brown;
             this.EndButton.FlatAppearance.BorderSize = 0;
             this.EndButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.EndButton.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.EndButton.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.EndButton.ForeColor = System.Drawing.Color.White;
             this.EndButton.Location = new System.Drawing.Point(813, 554);
             this.EndButton.Name = "EndButton";
@@ -121,6 +122,7 @@
             this.EndButton.TabIndex = 110;
             this.EndButton.Text = "終了";
             this.EndButton.UseVisualStyleBackColor = false;
+            this.EndButton.Click += new System.EventHandler(this.EndButton_Click);
             // 
             // ErrorDataGridView
             // 
@@ -154,125 +156,125 @@
             // ErrorKoumokuLabel
             // 
             this.ErrorKoumokuLabel.AutoSize = true;
-            this.ErrorKoumokuLabel.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.ErrorKoumokuLabel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.ErrorKoumokuLabel.Location = new System.Drawing.Point(485, 333);
             this.ErrorKoumokuLabel.Name = "ErrorKoumokuLabel";
-            this.ErrorKoumokuLabel.Size = new System.Drawing.Size(70, 15);
+            this.ErrorKoumokuLabel.Size = new System.Drawing.Size(82, 15);
             this.ErrorKoumokuLabel.TabIndex = 108;
             this.ErrorKoumokuLabel.Text = "エラー項目";
             // 
             // Panel7
             // 
             this.Panel7.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.Panel7.Location = new System.Drawing.Point(626, 73);
+            this.Panel7.Location = new System.Drawing.Point(642, 73);
             this.Panel7.Name = "Panel7";
-            this.Panel7.Size = new System.Drawing.Size(167, 1);
+            this.Panel7.Size = new System.Drawing.Size(198, 1);
             this.Panel7.TabIndex = 107;
             // 
             // Panel6
             // 
             this.Panel6.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.Panel6.Location = new System.Drawing.Point(626, 297);
+            this.Panel6.Location = new System.Drawing.Point(641, 297);
             this.Panel6.Name = "Panel6";
-            this.Panel6.Size = new System.Drawing.Size(167, 1);
+            this.Panel6.Size = new System.Drawing.Size(198, 1);
             this.Panel6.TabIndex = 106;
             // 
             // Panel5
             // 
             this.Panel5.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.Panel5.Location = new System.Drawing.Point(626, 225);
+            this.Panel5.Location = new System.Drawing.Point(641, 225);
             this.Panel5.Name = "Panel5";
-            this.Panel5.Size = new System.Drawing.Size(167, 1);
+            this.Panel5.Size = new System.Drawing.Size(198, 1);
             this.Panel5.TabIndex = 105;
             // 
             // Panel4
             // 
             this.Panel4.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.Panel4.Location = new System.Drawing.Point(626, 261);
+            this.Panel4.Location = new System.Drawing.Point(641, 261);
             this.Panel4.Name = "Panel4";
-            this.Panel4.Size = new System.Drawing.Size(167, 1);
+            this.Panel4.Size = new System.Drawing.Size(198, 1);
             this.Panel4.TabIndex = 104;
             // 
             // Panel3
             // 
             this.Panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.Panel3.Location = new System.Drawing.Point(626, 189);
+            this.Panel3.Location = new System.Drawing.Point(641, 189);
             this.Panel3.Name = "Panel3";
-            this.Panel3.Size = new System.Drawing.Size(167, 1);
+            this.Panel3.Size = new System.Drawing.Size(198, 1);
             this.Panel3.TabIndex = 103;
             // 
             // Panel2
             // 
             this.Panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.Panel2.Location = new System.Drawing.Point(626, 136);
+            this.Panel2.Location = new System.Drawing.Point(641, 136);
             this.Panel2.Name = "Panel2";
-            this.Panel2.Size = new System.Drawing.Size(167, 1);
+            this.Panel2.Size = new System.Drawing.Size(198, 1);
             this.Panel2.TabIndex = 102;
             // 
             // UpdateLoginIdText
             // 
             this.UpdateLoginIdText.AutoSize = true;
-            this.UpdateLoginIdText.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.UpdateLoginIdText.Location = new System.Drawing.Point(623, 279);
+            this.UpdateLoginIdText.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.UpdateLoginIdText.Location = new System.Drawing.Point(638, 279);
             this.UpdateLoginIdText.Name = "UpdateLoginIdText";
-            this.UpdateLoginIdText.Size = new System.Drawing.Size(55, 15);
+            this.UpdateLoginIdText.Size = new System.Drawing.Size(64, 15);
             this.UpdateLoginIdText.TabIndex = 101;
             this.UpdateLoginIdText.Text = "LoginID";
             // 
             // RegistLoginIdText
             // 
             this.RegistLoginIdText.AutoSize = true;
-            this.RegistLoginIdText.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.RegistLoginIdText.Location = new System.Drawing.Point(623, 207);
+            this.RegistLoginIdText.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.RegistLoginIdText.Location = new System.Drawing.Point(638, 207);
             this.RegistLoginIdText.Name = "RegistLoginIdText";
-            this.RegistLoginIdText.Size = new System.Drawing.Size(55, 15);
+            this.RegistLoginIdText.Size = new System.Drawing.Size(64, 15);
             this.RegistLoginIdText.TabIndex = 100;
             this.RegistLoginIdText.Text = "LoginID";
             // 
             // UpdateDateTimeText
             // 
             this.UpdateDateTimeText.AutoSize = true;
-            this.UpdateDateTimeText.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.UpdateDateTimeText.Location = new System.Drawing.Point(623, 243);
+            this.UpdateDateTimeText.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.UpdateDateTimeText.Location = new System.Drawing.Point(638, 243);
             this.UpdateDateTimeText.Name = "UpdateDateTimeText";
-            this.UpdateDateTimeText.Size = new System.Drawing.Size(170, 15);
+            this.UpdateDateTimeText.Size = new System.Drawing.Size(200, 15);
             this.UpdateDateTimeText.TabIndex = 99;
             this.UpdateDateTimeText.Text = "YYYY/MM/DD HH:NN:SS";
             // 
             // RegistDateTimeText
             // 
             this.RegistDateTimeText.AutoSize = true;
-            this.RegistDateTimeText.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.RegistDateTimeText.Location = new System.Drawing.Point(623, 171);
+            this.RegistDateTimeText.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.RegistDateTimeText.Location = new System.Drawing.Point(638, 171);
             this.RegistDateTimeText.Name = "RegistDateTimeText";
-            this.RegistDateTimeText.Size = new System.Drawing.Size(170, 15);
+            this.RegistDateTimeText.Size = new System.Drawing.Size(200, 15);
             this.RegistDateTimeText.TabIndex = 98;
             this.RegistDateTimeText.Text = "YYYY/MM/DD HH:NN:SS";
             // 
             // HisoOutDateTimeText
             // 
             this.HisoOutDateTimeText.AutoSize = true;
-            this.HisoOutDateTimeText.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.HisoOutDateTimeText.Location = new System.Drawing.Point(623, 118);
+            this.HisoOutDateTimeText.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.HisoOutDateTimeText.Location = new System.Drawing.Point(638, 118);
             this.HisoOutDateTimeText.Name = "HisoOutDateTimeText";
-            this.HisoOutDateTimeText.Size = new System.Drawing.Size(170, 15);
+            this.HisoOutDateTimeText.Size = new System.Drawing.Size(200, 15);
             this.HisoOutDateTimeText.TabIndex = 97;
             this.HisoOutDateTimeText.Text = "YYYY/MM/DD HH:NN:SS";
             // 
             // NgOutDateTimeText
             // 
             this.NgOutDateTimeText.AutoSize = true;
-            this.NgOutDateTimeText.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.NgOutDateTimeText.Location = new System.Drawing.Point(623, 55);
+            this.NgOutDateTimeText.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.NgOutDateTimeText.Location = new System.Drawing.Point(639, 55);
             this.NgOutDateTimeText.Name = "NgOutDateTimeText";
-            this.NgOutDateTimeText.Size = new System.Drawing.Size(170, 15);
+            this.NgOutDateTimeText.Size = new System.Drawing.Size(200, 15);
             this.NgOutDateTimeText.TabIndex = 96;
             this.NgOutDateTimeText.Text = "YYYY/MM/DD HH:NN:SS";
             // 
             // HisoOutKbText
             // 
-            this.HisoOutKbText.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.HisoOutKbText.Location = new System.Drawing.Point(626, 83);
+            this.HisoOutKbText.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.HisoOutKbText.Location = new System.Drawing.Point(641, 83);
             this.HisoOutKbText.MaxLength = 1;
             this.HisoOutKbText.Name = "HisoOutKbText";
             this.HisoOutKbText.Size = new System.Drawing.Size(29, 22);
@@ -281,8 +283,8 @@
             // 
             // NgOutKbText
             // 
-            this.NgOutKbText.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.NgOutKbText.Location = new System.Drawing.Point(626, 21);
+            this.NgOutKbText.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.NgOutKbText.Location = new System.Drawing.Point(641, 21);
             this.NgOutKbText.MaxLength = 1;
             this.NgOutKbText.Name = "NgOutKbText";
             this.NgOutKbText.Size = new System.Drawing.Size(29, 22);
@@ -292,17 +294,17 @@
             // UpdateLoginIdLabel
             // 
             this.UpdateLoginIdLabel.AutoSize = true;
-            this.UpdateLoginIdLabel.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.UpdateLoginIdLabel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.UpdateLoginIdLabel.Location = new System.Drawing.Point(485, 279);
             this.UpdateLoginIdLabel.Name = "UpdateLoginIdLabel";
-            this.UpdateLoginIdLabel.Size = new System.Drawing.Size(100, 15);
+            this.UpdateLoginIdLabel.Size = new System.Drawing.Size(109, 15);
             this.UpdateLoginIdLabel.TabIndex = 93;
             this.UpdateLoginIdLabel.Text = "更新者LoginID";
             // 
             // UpdateDateTimeLabel
             // 
             this.UpdateDateTimeLabel.AutoSize = true;
-            this.UpdateDateTimeLabel.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.UpdateDateTimeLabel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.UpdateDateTimeLabel.Location = new System.Drawing.Point(485, 243);
             this.UpdateDateTimeLabel.Name = "UpdateDateTimeLabel";
             this.UpdateDateTimeLabel.Size = new System.Drawing.Size(67, 15);
@@ -312,17 +314,17 @@
             // RegistLoginIdLabel
             // 
             this.RegistLoginIdLabel.AutoSize = true;
-            this.RegistLoginIdLabel.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.RegistLoginIdLabel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.RegistLoginIdLabel.Location = new System.Drawing.Point(485, 207);
             this.RegistLoginIdLabel.Name = "RegistLoginIdLabel";
-            this.RegistLoginIdLabel.Size = new System.Drawing.Size(100, 15);
+            this.RegistLoginIdLabel.Size = new System.Drawing.Size(109, 15);
             this.RegistLoginIdLabel.TabIndex = 91;
             this.RegistLoginIdLabel.Text = "登録者LoginID";
             // 
             // RegistDateTimeLabel
             // 
             this.RegistDateTimeLabel.AutoSize = true;
-            this.RegistDateTimeLabel.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.RegistDateTimeLabel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.RegistDateTimeLabel.Location = new System.Drawing.Point(485, 171);
             this.RegistDateTimeLabel.Name = "RegistDateTimeLabel";
             this.RegistDateTimeLabel.Size = new System.Drawing.Size(67, 15);
@@ -332,42 +334,42 @@
             // HisoOutDateTimeLabel
             // 
             this.HisoOutDateTimeLabel.AutoSize = true;
-            this.HisoOutDateTimeLabel.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.HisoOutDateTimeLabel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.HisoOutDateTimeLabel.Location = new System.Drawing.Point(485, 118);
             this.HisoOutDateTimeLabel.Name = "HisoOutDateTimeLabel";
-            this.HisoOutDateTimeLabel.Size = new System.Drawing.Size(131, 15);
+            this.HisoOutDateTimeLabel.Size = new System.Drawing.Size(142, 15);
             this.HisoOutDateTimeLabel.TabIndex = 89;
             this.HisoOutDateTimeLabel.Text = "配送データ出力日時";
             // 
             // HisoOutKbLabel
             // 
             this.HisoOutKbLabel.AutoSize = true;
-            this.HisoOutKbLabel.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.HisoOutKbLabel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.HisoOutKbLabel.Location = new System.Drawing.Point(485, 86);
             this.HisoOutKbLabel.Name = "HisoOutKbLabel";
-            this.HisoOutKbLabel.Size = new System.Drawing.Size(341, 15);
+            this.HisoOutKbLabel.Size = new System.Drawing.Size(379, 15);
             this.HisoOutKbLabel.TabIndex = 88;
-            this.HisoOutKbLabel.Text = "配送データ出力区分　 　　　　　0：未出力　1：出力済み";
+            this.HisoOutKbLabel.Text = "配送データ出力区分 　　　　0：未出力　1：出力済み";
             // 
             // NgOutDateTimeLabel
             // 
             this.NgOutDateTimeLabel.AutoSize = true;
-            this.NgOutDateTimeLabel.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.NgOutDateTimeLabel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.NgOutDateTimeLabel.Location = new System.Drawing.Point(485, 55);
             this.NgOutDateTimeLabel.Name = "NgOutDateTimeLabel";
-            this.NgOutDateTimeLabel.Size = new System.Drawing.Size(106, 15);
+            this.NgOutDateTimeLabel.Size = new System.Drawing.Size(112, 15);
             this.NgOutDateTimeLabel.TabIndex = 87;
             this.NgOutDateTimeLabel.Text = "ＮＧ票出力日時";
             // 
             // NgOutKbLabel
             // 
             this.NgOutKbLabel.AutoSize = true;
-            this.NgOutKbLabel.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.NgOutKbLabel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.NgOutKbLabel.Location = new System.Drawing.Point(485, 24);
             this.NgOutKbLabel.Name = "NgOutKbLabel";
-            this.NgOutKbLabel.Size = new System.Drawing.Size(341, 15);
+            this.NgOutKbLabel.Size = new System.Drawing.Size(379, 15);
             this.NgOutKbLabel.TabIndex = 86;
-            this.NgOutKbLabel.Text = "ＮＧ票出力区分　　　　　　　　　0：未出力　1：出力済み";
+            this.NgOutKbLabel.Text = "ＮＧ票出力区分　 　　　　　0：未出力　1：出力済み";
             // 
             // NextButton
             // 
@@ -375,7 +377,8 @@
             this.NextButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.NextButton.FlatAppearance.BorderSize = 0;
             this.NextButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.NextButton.Location = new System.Drawing.Point(131, 580);
+            this.NextButton.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.NextButton.Location = new System.Drawing.Point(174, 580);
             this.NextButton.Name = "NextButton";
             this.NextButton.Size = new System.Drawing.Size(20, 20);
             this.NextButton.TabIndex = 85;
@@ -388,6 +391,7 @@
             this.PrevButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.PrevButton.FlatAppearance.BorderSize = 0;
             this.PrevButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.PrevButton.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.PrevButton.Location = new System.Drawing.Point(45, 580);
             this.PrevButton.Name = "PrevButton";
             this.PrevButton.Size = new System.Drawing.Size(20, 20);
@@ -397,18 +401,18 @@
             // 
             // PageLabel
             // 
-            this.PageLabel.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.PageLabel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.PageLabel.Location = new System.Drawing.Point(72, 580);
             this.PageLabel.Name = "PageLabel";
-            this.PageLabel.Size = new System.Drawing.Size(54, 20);
+            this.PageLabel.Size = new System.Drawing.Size(96, 20);
             this.PageLabel.TabIndex = 83;
             this.PageLabel.Text = "/";
             this.PageLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // Ank3Text
             // 
-            this.Ank3Text.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.Ank3Text.Location = new System.Drawing.Point(174, 433);
+            this.Ank3Text.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.Ank3Text.Location = new System.Drawing.Point(182, 433);
             this.Ank3Text.MaxLength = 1;
             this.Ank3Text.Name = "Ank3Text";
             this.Ank3Text.Size = new System.Drawing.Size(40, 22);
@@ -417,8 +421,8 @@
             // 
             // Ank2Text
             // 
-            this.Ank2Text.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.Ank2Text.Location = new System.Drawing.Point(174, 397);
+            this.Ank2Text.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.Ank2Text.Location = new System.Drawing.Point(182, 397);
             this.Ank2Text.MaxLength = 1;
             this.Ank2Text.Name = "Ank2Text";
             this.Ank2Text.Size = new System.Drawing.Size(40, 22);
@@ -427,8 +431,8 @@
             // 
             // Ank1Text
             // 
-            this.Ank1Text.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.Ank1Text.Location = new System.Drawing.Point(174, 363);
+            this.Ank1Text.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.Ank1Text.Location = new System.Drawing.Point(182, 363);
             this.Ank1Text.MaxLength = 1;
             this.Ank1Text.Name = "Ank1Text";
             this.Ank1Text.Size = new System.Drawing.Size(40, 22);
@@ -437,8 +441,8 @@
             // 
             // TelNoText
             // 
-            this.TelNoText.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.TelNoText.Location = new System.Drawing.Point(174, 330);
+            this.TelNoText.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.TelNoText.Location = new System.Drawing.Point(182, 330);
             this.TelNoText.MaxLength = 11;
             this.TelNoText.Name = "TelNoText";
             this.TelNoText.Size = new System.Drawing.Size(268, 22);
@@ -446,8 +450,8 @@
             // 
             // MeiText
             // 
-            this.MeiText.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.MeiText.Location = new System.Drawing.Point(174, 294);
+            this.MeiText.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.MeiText.Location = new System.Drawing.Point(182, 294);
             this.MeiText.MaxLength = 100;
             this.MeiText.Name = "MeiText";
             this.MeiText.Size = new System.Drawing.Size(268, 22);
@@ -455,8 +459,8 @@
             // 
             // SeiText
             // 
-            this.SeiText.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.SeiText.Location = new System.Drawing.Point(174, 256);
+            this.SeiText.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.SeiText.Location = new System.Drawing.Point(182, 256);
             this.SeiText.MaxLength = 100;
             this.SeiText.Name = "SeiText";
             this.SeiText.Size = new System.Drawing.Size(268, 22);
@@ -464,8 +468,8 @@
             // 
             // Add4Text
             // 
-            this.Add4Text.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.Add4Text.Location = new System.Drawing.Point(174, 220);
+            this.Add4Text.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.Add4Text.Location = new System.Drawing.Point(182, 220);
             this.Add4Text.MaxLength = 100;
             this.Add4Text.Name = "Add4Text";
             this.Add4Text.Size = new System.Drawing.Size(268, 22);
@@ -473,8 +477,8 @@
             // 
             // Add3Text
             // 
-            this.Add3Text.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.Add3Text.Location = new System.Drawing.Point(174, 184);
+            this.Add3Text.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.Add3Text.Location = new System.Drawing.Point(182, 184);
             this.Add3Text.MaxLength = 100;
             this.Add3Text.Name = "Add3Text";
             this.Add3Text.Size = new System.Drawing.Size(268, 22);
@@ -482,8 +486,8 @@
             // 
             // Add2Text
             // 
-            this.Add2Text.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.Add2Text.Location = new System.Drawing.Point(174, 149);
+            this.Add2Text.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.Add2Text.Location = new System.Drawing.Point(182, 149);
             this.Add2Text.MaxLength = 100;
             this.Add2Text.Name = "Add2Text";
             this.Add2Text.Size = new System.Drawing.Size(268, 22);
@@ -491,8 +495,8 @@
             // 
             // Add1Text
             // 
-            this.Add1Text.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.Add1Text.Location = new System.Drawing.Point(174, 115);
+            this.Add1Text.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.Add1Text.Location = new System.Drawing.Point(182, 115);
             this.Add1Text.MaxLength = 50;
             this.Add1Text.Name = "Add1Text";
             this.Add1Text.Size = new System.Drawing.Size(100, 22);
@@ -500,8 +504,8 @@
             // 
             // ZipCdText
             // 
-            this.ZipCdText.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.ZipCdText.Location = new System.Drawing.Point(174, 83);
+            this.ZipCdText.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.ZipCdText.Location = new System.Drawing.Point(182, 83);
             this.ZipCdText.MaxLength = 7;
             this.ZipCdText.Name = "ZipCdText";
             this.ZipCdText.Size = new System.Drawing.Size(100, 22);
@@ -524,7 +528,7 @@
             // 
             this.OK_RadioButton.Appearance = System.Windows.Forms.Appearance.Button;
             this.OK_RadioButton.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.OK_RadioButton.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.OK_RadioButton.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.OK_RadioButton.Location = new System.Drawing.Point(17, 9);
             this.OK_RadioButton.Name = "OK_RadioButton";
             this.OK_RadioButton.Size = new System.Drawing.Size(74, 31);
@@ -538,7 +542,7 @@
             // 
             this.NG_RadioButton.Appearance = System.Windows.Forms.Appearance.Button;
             this.NG_RadioButton.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.NG_RadioButton.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.NG_RadioButton.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.NG_RadioButton.Location = new System.Drawing.Point(114, 9);
             this.NG_RadioButton.Name = "NG_RadioButton";
             this.NG_RadioButton.Size = new System.Drawing.Size(74, 31);
@@ -552,7 +556,7 @@
             // 
             this.KEEP_RadioButton.Appearance = System.Windows.Forms.Appearance.Button;
             this.KEEP_RadioButton.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.KEEP_RadioButton.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.KEEP_RadioButton.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.KEEP_RadioButton.Location = new System.Drawing.Point(206, 9);
             this.KEEP_RadioButton.Name = "KEEP_RadioButton";
             this.KEEP_RadioButton.Size = new System.Drawing.Size(74, 31);
@@ -566,7 +570,7 @@
             // 
             this.CANCEL_RadioButton.Appearance = System.Windows.Forms.Appearance.Button;
             this.CANCEL_RadioButton.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.CANCEL_RadioButton.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.CANCEL_RadioButton.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.CANCEL_RadioButton.Location = new System.Drawing.Point(302, 9);
             this.CANCEL_RadioButton.Name = "CANCEL_RadioButton";
             this.CANCEL_RadioButton.Size = new System.Drawing.Size(74, 31);
@@ -579,7 +583,7 @@
             // JyotaiKbLabel
             // 
             this.JyotaiKbLabel.AutoSize = true;
-            this.JyotaiKbLabel.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.JyotaiKbLabel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.JyotaiKbLabel.Location = new System.Drawing.Point(42, 469);
             this.JyotaiKbLabel.Name = "JyotaiKbLabel";
             this.JyotaiKbLabel.Size = new System.Drawing.Size(67, 15);
@@ -589,37 +593,37 @@
             // Ank3Label
             // 
             this.Ank3Label.AutoSize = true;
-            this.Ank3Label.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.Ank3Label.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.Ank3Label.Location = new System.Drawing.Point(44, 436);
             this.Ank3Label.Name = "Ank3Label";
-            this.Ank3Label.Size = new System.Drawing.Size(110, 15);
+            this.Ank3Label.Size = new System.Drawing.Size(142, 15);
             this.Ank3Label.TabIndex = 69;
             this.Ank3Label.Text = "アンケート（職業）";
             // 
             // Ank2Label
             // 
             this.Ank2Label.AutoSize = true;
-            this.Ank2Label.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.Ank2Label.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.Ank2Label.Location = new System.Drawing.Point(44, 400);
             this.Ank2Label.Name = "Ank2Label";
-            this.Ank2Label.Size = new System.Drawing.Size(110, 15);
+            this.Ank2Label.Size = new System.Drawing.Size(142, 15);
             this.Ank2Label.TabIndex = 68;
             this.Ank2Label.Text = "アンケート（年齢）";
             // 
             // Ank1Label
             // 
             this.Ank1Label.AutoSize = true;
-            this.Ank1Label.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.Ank1Label.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.Ank1Label.Location = new System.Drawing.Point(44, 366);
             this.Ank1Label.Name = "Ank1Label";
-            this.Ank1Label.Size = new System.Drawing.Size(110, 15);
+            this.Ank1Label.Size = new System.Drawing.Size(142, 15);
             this.Ank1Label.TabIndex = 67;
             this.Ank1Label.Text = "アンケート（性別）";
             // 
             // TelNoLabel
             // 
             this.TelNoLabel.AutoSize = true;
-            this.TelNoLabel.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.TelNoLabel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.TelNoLabel.Location = new System.Drawing.Point(42, 333);
             this.TelNoLabel.Name = "TelNoLabel";
             this.TelNoLabel.Size = new System.Drawing.Size(67, 15);
@@ -629,67 +633,67 @@
             // MeiLabel
             // 
             this.MeiLabel.AutoSize = true;
-            this.MeiLabel.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.MeiLabel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.MeiLabel.Location = new System.Drawing.Point(42, 297);
             this.MeiLabel.Name = "MeiLabel";
-            this.MeiLabel.Size = new System.Drawing.Size(68, 15);
+            this.MeiLabel.Size = new System.Drawing.Size(82, 15);
             this.MeiLabel.TabIndex = 65;
             this.MeiLabel.Text = "氏名（名）";
             // 
             // SeiLabel
             // 
             this.SeiLabel.AutoSize = true;
-            this.SeiLabel.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.SeiLabel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.SeiLabel.Location = new System.Drawing.Point(42, 259);
             this.SeiLabel.Name = "SeiLabel";
-            this.SeiLabel.Size = new System.Drawing.Size(68, 15);
+            this.SeiLabel.Size = new System.Drawing.Size(82, 15);
             this.SeiLabel.TabIndex = 64;
             this.SeiLabel.Text = "氏名（姓）";
             // 
             // Add4Label
             // 
             this.Add4Label.AutoSize = true;
-            this.Add4Label.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.Add4Label.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.Add4Label.Location = new System.Drawing.Point(43, 223);
             this.Add4Label.Name = "Add4Label";
-            this.Add4Label.Size = new System.Drawing.Size(108, 15);
+            this.Add4Label.Size = new System.Drawing.Size(127, 15);
             this.Add4Label.TabIndex = 63;
             this.Add4Label.Text = "住所４（建物名）";
             // 
             // Add3Label
             // 
             this.Add3Label.AutoSize = true;
-            this.Add3Label.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.Add3Label.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.Add3Label.Location = new System.Drawing.Point(43, 187);
             this.Add3Label.Name = "Add3Label";
-            this.Add3Label.Size = new System.Drawing.Size(123, 15);
+            this.Add3Label.Size = new System.Drawing.Size(142, 15);
             this.Add3Label.TabIndex = 62;
             this.Add3Label.Text = "住所３（町域番地）";
             // 
             // Add2Label
             // 
             this.Add2Label.AutoSize = true;
-            this.Add2Label.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.Add2Label.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.Add2Label.Location = new System.Drawing.Point(43, 152);
             this.Add2Label.Name = "Add2Label";
-            this.Add2Label.Size = new System.Drawing.Size(108, 15);
+            this.Add2Label.Size = new System.Drawing.Size(127, 15);
             this.Add2Label.TabIndex = 61;
             this.Add2Label.Text = "住所２（市区郡）";
             // 
             // Add1Lavel
             // 
             this.Add1Lavel.AutoSize = true;
-            this.Add1Lavel.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.Add1Lavel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.Add1Lavel.Location = new System.Drawing.Point(43, 118);
             this.Add1Lavel.Name = "Add1Lavel";
-            this.Add1Lavel.Size = new System.Drawing.Size(123, 15);
+            this.Add1Lavel.Size = new System.Drawing.Size(142, 15);
             this.Add1Lavel.TabIndex = 60;
             this.Add1Lavel.Text = "住所１（都道府県）";
             // 
             // ZipCdLabel
             // 
             this.ZipCdLabel.AutoSize = true;
-            this.ZipCdLabel.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.ZipCdLabel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.ZipCdLabel.Location = new System.Drawing.Point(43, 86);
             this.ZipCdLabel.Name = "ZipCdLabel";
             this.ZipCdLabel.Size = new System.Drawing.Size(67, 15);
@@ -698,8 +702,8 @@
             // 
             // UkeDateText
             // 
-            this.UkeDateText.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.UkeDateText.Location = new System.Drawing.Point(174, 52);
+            this.UkeDateText.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.UkeDateText.Location = new System.Drawing.Point(182, 52);
             this.UkeDateText.Name = "UkeDateText";
             this.UkeDateText.ReadOnly = true;
             this.UkeDateText.Size = new System.Drawing.Size(100, 22);
@@ -708,7 +712,7 @@
             // UkeDateLabel
             // 
             this.UkeDateLabel.AutoSize = true;
-            this.UkeDateLabel.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.UkeDateLabel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.UkeDateLabel.Location = new System.Drawing.Point(44, 55);
             this.UkeDateLabel.Name = "UkeDateLabel";
             this.UkeDateLabel.Size = new System.Drawing.Size(52, 15);
@@ -717,8 +721,8 @@
             // 
             // kanriNoText
             // 
-            this.kanriNoText.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.kanriNoText.Location = new System.Drawing.Point(174, 21);
+            this.kanriNoText.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.kanriNoText.Location = new System.Drawing.Point(182, 21);
             this.kanriNoText.Name = "kanriNoText";
             this.kanriNoText.ReadOnly = true;
             this.kanriNoText.Size = new System.Drawing.Size(100, 22);
@@ -727,7 +731,7 @@
             // KanriNoLabel
             // 
             this.KanriNoLabel.AutoSize = true;
-            this.KanriNoLabel.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.KanriNoLabel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.KanriNoLabel.Location = new System.Drawing.Point(43, 24);
             this.KanriNoLabel.Name = "KanriNoLabel";
             this.KanriNoLabel.Size = new System.Drawing.Size(112, 15);

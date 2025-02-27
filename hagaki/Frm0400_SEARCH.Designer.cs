@@ -89,7 +89,7 @@
             this.BackButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.BackButton.FlatAppearance.BorderSize = 0;
             this.BackButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.BackButton.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.BackButton.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.BackButton.ForeColor = System.Drawing.Color.White;
             this.BackButton.Location = new System.Drawing.Point(834, 572);
             this.BackButton.Name = "BackButton";
@@ -105,7 +105,7 @@
             this.SearchButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.SearchButton.FlatAppearance.BorderSize = 0;
             this.SearchButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.SearchButton.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.SearchButton.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.SearchButton.Location = new System.Drawing.Point(680, 572);
             this.SearchButton.Name = "SearchButton";
             this.SearchButton.Size = new System.Drawing.Size(111, 47);
@@ -354,11 +354,11 @@
             this.ResetButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.ResetButton.FlatAppearance.BorderSize = 0;
             this.ResetButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ResetButton.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.ResetButton.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.ResetButton.ForeColor = System.Drawing.SystemColors.Window;
-            this.ResetButton.Location = new System.Drawing.Point(763, 207);
+            this.ResetButton.Location = new System.Drawing.Point(751, 195);
             this.ResetButton.Name = "ResetButton";
-            this.ResetButton.Size = new System.Drawing.Size(75, 23);
+            this.ResetButton.Size = new System.Drawing.Size(87, 35);
             this.ResetButton.TabIndex = 26;
             this.ResetButton.Text = "リセット";
             this.ResetButton.UseVisualStyleBackColor = false;
@@ -423,7 +423,7 @@
             // TelNoLabel
             // 
             this.TelNoLabel.AutoSize = true;
-            this.TelNoLabel.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.TelNoLabel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.TelNoLabel.Location = new System.Drawing.Point(89, 210);
             this.TelNoLabel.Name = "TelNoLabel";
             this.TelNoLabel.Size = new System.Drawing.Size(71, 16);
@@ -441,10 +441,10 @@
             // MeiLabel
             // 
             this.MeiLabel.AutoSize = true;
-            this.MeiLabel.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.MeiLabel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.MeiLabel.Location = new System.Drawing.Point(288, 173);
             this.MeiLabel.Name = "MeiLabel";
-            this.MeiLabel.Size = new System.Drawing.Size(65, 16);
+            this.MeiLabel.Size = new System.Drawing.Size(67, 16);
             this.MeiLabel.TabIndex = 17;
             this.MeiLabel.Text = "氏名(名)";
             // 
@@ -459,10 +459,10 @@
             // SeiLabel
             // 
             this.SeiLabel.AutoSize = true;
-            this.SeiLabel.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.SeiLabel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.SeiLabel.Location = new System.Drawing.Point(95, 173);
             this.SeiLabel.Name = "SeiLabel";
-            this.SeiLabel.Size = new System.Drawing.Size(65, 16);
+            this.SeiLabel.Size = new System.Drawing.Size(67, 16);
             this.SeiLabel.TabIndex = 15;
             this.SeiLabel.Text = "氏名(姓)";
             // 
@@ -477,7 +477,7 @@
             // AddressLabel
             // 
             this.AddressLabel.AutoSize = true;
-            this.AddressLabel.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.AddressLabel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.AddressLabel.Location = new System.Drawing.Point(121, 136);
             this.AddressLabel.Name = "AddressLabel";
             this.AddressLabel.Size = new System.Drawing.Size(39, 16);
@@ -496,7 +496,7 @@
             // ZipCdLabel
             // 
             this.ZipCdLabel.AutoSize = true;
-            this.ZipCdLabel.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.ZipCdLabel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.ZipCdLabel.Location = new System.Drawing.Point(89, 100);
             this.ZipCdLabel.Name = "ZipCdLabel";
             this.ZipCdLabel.Size = new System.Drawing.Size(71, 16);
@@ -545,7 +545,7 @@
             // UkedateLabel
             // 
             this.UkedateLabel.AutoSize = true;
-            this.UkedateLabel.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.UkedateLabel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.UkedateLabel.Location = new System.Drawing.Point(105, 62);
             this.UkedateLabel.Name = "UkedateLabel";
             this.UkedateLabel.Size = new System.Drawing.Size(55, 16);
@@ -564,7 +564,7 @@
             // Label1
             // 
             this.Label1.AutoSize = true;
-            this.Label1.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.Label1.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.Label1.Location = new System.Drawing.Point(302, 23);
             this.Label1.Name = "Label1";
             this.Label1.Size = new System.Drawing.Size(23, 16);
@@ -574,7 +574,7 @@
             // KanriNoLabel
             // 
             this.KanriNoLabel.AutoSize = true;
-            this.KanriNoLabel.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.KanriNoLabel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.KanriNoLabel.Location = new System.Drawing.Point(41, 23);
             this.KanriNoLabel.Name = "KanriNoLabel";
             this.KanriNoLabel.Size = new System.Drawing.Size(119, 16);

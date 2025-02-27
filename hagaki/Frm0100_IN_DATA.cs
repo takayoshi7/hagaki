@@ -26,7 +26,6 @@ namespace hagaki
         private string outputFolderPath = string.Empty; // 出力先フォルダパス
         private string connectionString = string.Empty; // 接続文字列
         private My_Function _func;                      // My_Functionを使えるように
-        private Cls_DBConn _conn;                       // Cls_DBConnを使えるように
         #endregion
 
         #region 定数
@@ -80,9 +79,6 @@ namespace hagaki
                 // My_Functionクラスをインスタンス化
                 _func = new My_Function();
 
-                // Cls_DBConnクラスをインスタンス化
-                _conn = new Cls_DBConn(connectionString);
-
                 // 件数初期化
                 InitCount();
             }
@@ -114,6 +110,9 @@ namespace hagaki
 
                 // 選択したファイルパスを表示
                 InputDataPathTextBox.Text = selectedFilePath;
+
+                // 件数初期化
+                InitCount();
             }
             catch (Exception ex)
             {
@@ -152,9 +151,6 @@ namespace hagaki
         #region 読込
         private void ReadButton_DataImport_Click(object sender, EventArgs e)
         {
-            // トランザクション
-            SqlTransaction transaction = null;
-
             try
             {
                 // テキストファイルが選択されていなければ処理終了
@@ -181,334 +177,335 @@ namespace hagaki
                     // 接続を開く
                     connection.Open();
 
-                    using (SqlCommand command = connection.CreateCommand())
+                    // トランザクション開始
+                    using (SqlTransaction transaction = connection.BeginTransaction())
                     {
-                        // トランザクション開始
-                        transaction = connection.BeginTransaction();
-
-                        // WKテーブル初期化
-                        InitWK_Table(connection, transaction);
-
-                        // 行番号
-                        int lineNo = 1;
-
-                        // DataSetを作成
-                        DataSet dataSet = new DataSet();
-
-                        // WK_IN_MAINテーブルのカラムのサイズを取得SQL文の生成（DBサイズエラーチェック用）
-                        string getColmunSizeSqlStr = $"SELECT COLUMN_NAME, CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{WK_MAIN}'";
-
-                        // データを取得してDataSetに追加
-                        _func.FillDataTable(dataSet, connection, transaction, getColmunSizeSqlStr, null, WK_MAIN + "_SIZE");
-
-                        // カラムのサイズ用リスト
-                        List<int> sizeList = new List<int>();
-
-                        // 13項目のサイズをリストに入れる
-                        for (int i = 0; i < 13; i++)
+                        using (SqlCommand command = connection.CreateCommand())
                         {
-                            sizeList.Add((int)dataSet.Tables[WK_MAIN + "_SIZE"].Rows[i]["CHARACTER_MAXIMUM_LENGTH"]);
-                        }
+                            // WKテーブル初期化
+                            InitWK_Table(connection, transaction);
 
-                        // D_MAINテーブルのKANRI_NOカラムの値を取得SQL文の生成（DBとの重複チェック用）
-                        string getKanriNoSqlStr = $"SELECT KANRI_NO FROM {D_MAIN}";
+                            // 行番号
+                            int lineNo = 1;
 
+                            // DataSetを作成
+                            DataSet dataSet = new DataSet();
 
-                        _func.FillDataTable(dataSet, connection, transaction, getKanriNoSqlStr, null, D_MAIN);
+                            // WK_IN_MAINテーブルのカラムのサイズを取得SQL文の生成（DBサイズエラーチェック用）
+                            string getColmunSizeSqlStr = $"SELECT COLUMN_NAME, CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{WK_MAIN}'";
 
-                        DataTable mainTable = dataSet.Tables[D_MAIN];
+                            // データを取得してDataSetに追加
+                            _func.FillDataTable(dataSet, connection, transaction, getColmunSizeSqlStr, null, WK_MAIN + "_SIZE");
 
+                            // カラムのサイズ用リスト
+                            List<int> sizeList = new List<int>();
 
-                        // Shift-JISエンコーディングを指定してStreamReaderを作成
-                        using (StreamReader sr = new StreamReader(selectedFilePath, Encoding.GetEncoding("shift_jis")))
-                        {
-                            // ファイルの最後まで繰り返し
-                            while (!sr.EndOfStream)
+                            // 13項目のサイズをリストに入れる
+                            for (int i = 0; i < 13; i++)
                             {
-                                // 1レコード取り出し
-                                string line = sr.ReadLine();
+                                sizeList.Add((int)dataSet.Tables[WK_MAIN + "_SIZE"].Rows[i]["CHARACTER_MAXIMUM_LENGTH"]);
+                            }
 
-                                // タブで区切って配列に入れる
-                                string[] dataArray = line.Split('\t');
+                            // D_MAINテーブルのKANRI_NOカラムの値を取得SQL文の生成（DBとの重複チェック用）
+                            string getKanriNoSqlStr = $"SELECT KANRI_NO FROM {D_MAIN}";
 
-                                // 1レコードのパラメータを辞書で管理
-                                Dictionary<string, object> lineParameters = new Dictionary<string, object>
+
+                            _func.FillDataTable(dataSet, connection, transaction, getKanriNoSqlStr, null, D_MAIN);
+
+                            DataTable mainTable = dataSet.Tables[D_MAIN];
+
+
+                            // Shift-JISエンコーディングを指定してStreamReaderを作成
+                            using (StreamReader sr = new StreamReader(selectedFilePath, Encoding.GetEncoding("shift_jis")))
+                            {
+                                // ファイルの最後まで繰り返し
+                                while (!sr.EndOfStream)
                                 {
-                                    { "@Line", line }
-                                };
+                                    // 1レコード取り出し
+                                    string line = sr.ReadLine();
 
-                                #region 取り込み不可エラーチェック
-                                #region **********項目数（レイアウトエラー）チェック**********
-                                // エラーだった場合、WK_IN_MAIN_INSERT_ERRテーブルに登録
-                                if (!_func.ItemsNumCheck(dataArray))
-                                {
-                                    // SQL文の生成
-                                    string mainInsErrorSql = _func.MakeInsertSql(WK_MAIN_INSERT_ERROR, lineNo, (int)My_Function.ErrorCd.LayoutError);
+                                    // タブで区切って配列に入れる
+                                    string[] dataArray = line.Split('\t');
 
-                                    // SQL文を実行
-                                    bool mainInsErrorExcuteCheck = _func.Execute(connection, transaction, mainInsErrorSql, lineParameters);
-
-                                    // 次の繰り返し処理へ
-                                    if (mainInsErrorExcuteCheck)
+                                    // 1レコードのパラメータを辞書で管理
+                                    Dictionary<string, object> lineParameters = new Dictionary<string, object>
                                     {
-                                        lineNo += 1;
-                                        continue; // 次の繰り返しへ
-                                    }
-                                    else
-                                    {
-                                        throw new Exception("WK_IN_MAIN_INSERT_ERRテーブルに登録できませんでした。");
-                                    }
-                                }
-                                #endregion
+                                        { "@Line", line }
+                                    };
 
-                                // 管理番号
-                                string kanriNo = dataArray[(int)My_Function.MainTableColumn.KanriNo].ToString();
-                                // 受付日
-                                string ukeDate = dataArray[(int)My_Function.MainTableColumn.UkeDate].ToString();
-                                // 登録不可エラー番号リスト
-                                List<int> registrationErrorNoList = new List<int>();
-
-                                #region **********事務局管理番号チェック**********
-                                // エラーであればリストに追加
-                                if (!_func.KanriNoCheck(kanriNo))
-                                {
-                                    registrationErrorNoList.Add((int)My_Function.ErrorCd.IncorrectControlNumber);
-                                }
-                                #endregion
-
-                                #region **********事務局管理番号が既にDBに登録されていないかチェック**********
-                                bool dupliCheckDB = false;
-
-                                // 重複チェック
-                                foreach (DataRow drow in mainTable.Rows)
-                                {
-                                    if (drow["KANRI_NO"].ToString() == kanriNo)
-                                    {
-                                        dupliCheckDB = true;
-                                    }
-                                }
-
-                                // 重複していればリストに追加
-                                if (dupliCheckDB)
-                                {
-                                    registrationErrorNoList.Add((int)My_Function.ErrorCd.ImportedControlNumber);
-                                }
-                                #endregion
-
-                                #region **********受付日チェック**********
-                                // エラーであればリストに追加
-                                if (!_func.UkeDateCheck(ukeDate))
-                                {
-                                    registrationErrorNoList.Add((int)My_Function.ErrorCd.IncorrectReceptionDate);
-                                }
-                                #endregion
-
-                                #region **********DBサイズエラーチェック**********
-                                bool DBSizeErrorFlg = false;
-
-                                // 郵便番号からアンケート（職業）までのサイズチェック
-                                for (int i = 2; i <= 12; i++)
-                                {
-                                    if (sizeList[i] < dataArray[i].Length)
-                                    {
-                                        DBSizeErrorFlg = true;
-                                        break;
-                                    }
-                                }
-
-                                // サイズエラーであればリストに追加
-                                if (DBSizeErrorFlg)
-                                {
-                                    registrationErrorNoList.Add((int)My_Function.ErrorCd.DBSizeError);
-                                }
-                                #endregion
-
-                                // 登録不可エラーがあれば
-                                if (registrationErrorNoList.Count != 0)
-                                {
-                                    // 昇順に並び替え
-                                    registrationErrorNoList.Sort();
-
-                                    foreach (int errCd in registrationErrorNoList)
+                                    #region 取り込み不可エラーチェック
+                                    #region **********項目数（レイアウトエラー）チェック**********
+                                    // エラーだった場合、WK_IN_MAIN_INSERT_ERRテーブルに登録
+                                    if (!_func.ItemsNumCheck(dataArray))
                                     {
                                         // SQL文の生成
-                                        string mainInsErrorSql = _func.MakeInsertSql(WK_MAIN_INSERT_ERROR, lineNo, errCd);
+                                        string mainInsErrorSql = _func.MakeInsertSql(WK_MAIN_INSERT_ERROR, lineNo, (int)My_Function.ErrorCd.LayoutError);
 
                                         // SQL文を実行
                                         bool mainInsErrorExcuteCheck = _func.Execute(connection, transaction, mainInsErrorSql, lineParameters);
 
                                         // 次の繰り返し処理へ
-                                        if (!mainInsErrorExcuteCheck)
+                                        if (mainInsErrorExcuteCheck)
                                         {
-                                            throw new Exception("WK_IN_MAIN_INSERT_ERRテーブルに登録できませんでした。");
+                                            lineNo += 1;
+                                            continue; // 次の繰り返しへ
+                                        }
+                                        else
+                                        {
+                                            MessageBox.Show("WK_IN_MAIN_INSERT_ERRテーブルに登録できませんでした。", "エラー");
                                         }
                                     }
-                                }
-                                #endregion
-                                #region 取り込み可能エラーチェック
-                                else
-                                {
-                                    // エラーコードによる状態区分
-                                    int jotaiKb = 0;
+                                    #endregion
 
-                                    // 取込不可エラーが無い場合、エラーコードのエラーチェック
-                                    List<int> errorCdList = _func.ErrorCheck(dataArray);
+                                    // 管理番号
+                                    string kanriNo = dataArray[(int)My_Function.MainTableColumn.KanriNo].ToString();
+                                    // 受付日
+                                    string ukeDate = dataArray[(int)My_Function.MainTableColumn.UkeDate].ToString();
+                                    // 登録不可エラー番号リスト
+                                    List<int> registrationErrorNoList = new List<int>();
 
-                                    //エラーコードがある場合
-                                    if (errorCdList.Count != 0)
+                                    #region **********事務局管理番号チェック**********
+                                    // エラーであればリストに追加
+                                    if (!_func.KanriNoCheck(kanriNo))
                                     {
-                                        foreach (int errorCd in errorCdList)
+                                        registrationErrorNoList.Add((int)My_Function.ErrorCd.IncorrectControlNumber);
+                                    }
+                                    #endregion
+
+                                    #region **********事務局管理番号が既にDBに登録されていないかチェック**********
+                                    bool dupliCheckDB = false;
+
+                                    // 重複チェック
+                                    foreach (DataRow drow in mainTable.Rows)
+                                    {
+                                        if (drow["KANRI_NO"].ToString() == kanriNo)
                                         {
-                                            // WK_IN_MAIN_ERRORテーブルに登録が不要なエラーコード（エラーレベル0）の場合
-                                            if (errorCd == 116)
-                                            {
-                                                continue;
-                                            }
+                                            dupliCheckDB = true;
+                                        }
+                                    }
 
-                                            // WK_IN_MAIN_ERRORテーブルに登録が必要なエラーコード（エラーレベル1または2）の場合
+                                    // 重複していればリストに追加
+                                    if (dupliCheckDB)
+                                    {
+                                        registrationErrorNoList.Add((int)My_Function.ErrorCd.ImportedControlNumber);
+                                    }
+                                    #endregion
+
+                                    #region **********受付日チェック**********
+                                    // エラーであればリストに追加
+                                    if (!_func.UkeDateCheck(ukeDate))
+                                    {
+                                        registrationErrorNoList.Add((int)My_Function.ErrorCd.IncorrectReceptionDate);
+                                    }
+                                    #endregion
+
+                                    #region **********DBサイズエラーチェック**********
+                                    bool DBSizeErrorFlg = false;
+
+                                    // 郵便番号からアンケート（職業）までのサイズチェック
+                                    for (int i = 2; i <= 12; i++)
+                                    {
+                                        if (sizeList[i] < dataArray[i].Length)
+                                        {
+                                            DBSizeErrorFlg = true;
+                                            break;
+                                        }
+                                    }
+
+                                    // サイズエラーであればリストに追加
+                                    if (DBSizeErrorFlg)
+                                    {
+                                        registrationErrorNoList.Add((int)My_Function.ErrorCd.DBSizeError);
+                                    }
+                                    #endregion
+
+                                    // 登録不可エラーがあれば
+                                    if (registrationErrorNoList.Count != 0)
+                                    {
+                                        // 昇順に並び替え
+                                        registrationErrorNoList.Sort();
+
+                                        foreach (int errCd in registrationErrorNoList)
+                                        {
                                             // SQL文の生成
-                                            string mainErrorSql = _func.MakeInsertSql(WK_MAIN_ERROR, lineNo, errorCd);
-
-                                            // 1レコードのパラメータを辞書で管理
-                                            Dictionary<string, object> kanriNoParameter = new Dictionary<string, object>
-                                            {
-                                                { "@kanriNo", kanriNo }
-                                            };
+                                            string mainInsErrorSql = _func.MakeInsertSql(WK_MAIN_INSERT_ERROR, lineNo, errCd);
 
                                             // SQL文を実行
-                                            bool mainErrorExcuteCheck = _func.Execute(connection, transaction,  mainErrorSql, kanriNoParameter);
+                                            bool mainInsErrorExcuteCheck = _func.Execute(connection, transaction, mainInsErrorSql, lineParameters);
 
-                                            if (!mainErrorExcuteCheck)
+                                            // 次の繰り返し処理へ
+                                            if (!mainInsErrorExcuteCheck)
                                             {
-                                                throw new Exception("WK_IN_MAIN_ERRORテーブルに登録できませんでした。");
-                                            }
-
-                                            // エラーレベルが2であれば状態区分を1（NG）に
-                                            if (errorCd != 102)
-                                            {
-                                                jotaiKb = 1;
+                                                MessageBox.Show("WK_IN_MAIN_INSERT_ERRテーブルに登録できませんでした。", "エラー");
                                             }
                                         }
                                     }
-
-                                    // 値をテーブル登録用に強制変換
-                                    dataArray = _func.ForcedConversion(dataArray);
-
-                                    // 項目ごとのパラメータを辞書で管理
-                                    Dictionary<string, object> parameters = _func.KeyValuePairs(dataArray, line);
-
-                                    // WK_IN_MAINテーブルに登録
-                                    // SQL文の生成
-                                    string mainStrSql = _func.MakeInsertSql(WK_MAIN, lineNo, jotaiKb);
-
-                                    // SQL文を実行
-                                    bool mainExcuteCheck = _func.Execute(connection, transaction, mainStrSql, parameters);
-
-                                    if (!mainExcuteCheck)
+                                    #endregion
+                                    #region 取り込み可能エラーチェック
+                                    else
                                     {
-                                        throw new Exception("WK_IN_MAINテーブルに登録できませんでした。");
+                                        // エラーコードによる状態区分
+                                        int jotaiKb = 0;
+
+                                        // 取込不可エラーが無い場合、エラーコードのエラーチェック
+                                        List<int> errorCdList = _func.ErrorCheck(dataArray);
+
+                                        //エラーコードがある場合
+                                        if (errorCdList.Count != 0)
+                                        {
+                                            foreach (int errorCd in errorCdList)
+                                            {
+                                                // WK_IN_MAIN_ERRORテーブルに登録が不要なエラーコード（エラーレベル0）の場合
+                                                if (errorCd == 116)
+                                                {
+                                                    continue;
+                                                }
+
+                                                // WK_IN_MAIN_ERRORテーブルに登録が必要なエラーコード（エラーレベル1または2）の場合
+                                                // SQL文の生成
+                                                string mainErrorSql = _func.MakeInsertSql(WK_MAIN_ERROR, lineNo, errorCd);
+
+                                                // 1レコードのパラメータを辞書で管理
+                                                Dictionary<string, object> kanriNoParameter = new Dictionary<string, object>
+                                                {
+                                                    { "@KanriNo", kanriNo }
+                                                };
+
+                                                // SQL文を実行
+                                                bool mainErrorExcuteCheck = _func.Execute(connection, transaction, mainErrorSql, kanriNoParameter);
+
+                                                if (!mainErrorExcuteCheck)
+                                                {
+                                                    MessageBox.Show("WK_IN_MAIN_ERRORテーブルに登録できませんでした。", "エラー");
+                                                }
+
+                                                // エラーレベルが2であれば状態区分を1（NG）に
+                                                if (errorCd != 102)
+                                                {
+                                                    jotaiKb = 1;
+                                                }
+                                            }
+                                        }
+
+                                        // 値をテーブル登録用に強制変換
+                                        dataArray = _func.ForcedConversion(dataArray);
+
+                                        // 項目ごとのパラメータを辞書で管理
+                                        Dictionary<string, object> parameters = _func.KeyValuePairs(dataArray, line);
+
+                                        // WK_IN_MAINテーブルに登録
+                                        // SQL文の生成
+                                        string mainStrSql = _func.MakeInsertSql(WK_MAIN, lineNo, jotaiKb);
+
+                                        // SQL文を実行
+                                        bool mainExcuteCheck = _func.Execute(connection, transaction, mainStrSql, parameters);
+
+                                        if (!mainExcuteCheck)
+                                        {
+                                            MessageBox.Show("WK_IN_MAINテーブルに登録できませんでした。", "エラー");
+                                        }
                                     }
+                                    #endregion
+
+                                    // 次の繰り返し処理へ
+                                    lineNo += 1;
                                 }
-                                #endregion
-
-                                // 次の繰り返し処理へ
-                                lineNo += 1;
                             }
-                        }
 
-                        #region **********事務局管理番号ファイル内重複チェック**********
-                        // WK_IN_MAINテーブルの重複するKANRI_NOカラムの値を取得SQL文の生成
-                        string getDupliKanriNoSqlStr = $"SELECT KANRI_NO, COUNT(KANRI_NO) AS COUNT FROM {WK_MAIN} GROUP BY KANRI_NO HAVING COUNT(KANRI_NO) > 1";
-
-                        // データを取得してDataSetに追加
-                        _func.FillDataTable(dataSet, connection, transaction, getDupliKanriNoSqlStr, null, WK_MAIN + "_COUNT");
-
-                        // 重複した事務局管理番号用リスト
-                        List<string> dupliKanriNoList = new List<string>();
-
-                        // 重複した事務局管理番号をセット
-                        for (int i = 0; i < dataSet.Tables[WK_MAIN + "_COUNT"].Rows.Count; i++)
-                        {
-                            dupliKanriNoList.Add((string)dataSet.Tables[WK_MAIN + "_COUNT"].Rows[i]["KANRI_NO"]);
-                        }
-
-                        foreach (string kanriNo in dupliKanriNoList)
-                        {
-                            // WK_IN_MAINテーブルの重複したレコードを取得SQL文の生成
-                            string getDupliDataSqlStr = $"SELECT KANRI_NO, OFFSET, LINE_DATA FROM {WK_MAIN} WHERE KANRI_NO = {kanriNo}";
-
-                            // 1レコードのパラメータを辞書で管理
-                            Dictionary<string, object> dupliKanriNoParameter = new Dictionary<string, object>
-                            {
-                                { "@kanriNo", kanriNo }
-                            };
+                            #region **********事務局管理番号ファイル内重複チェック**********
+                            // WK_IN_MAINテーブルの重複するKANRI_NOカラムの値を取得SQL文の生成
+                            string getDupliKanriNoSqlStr = $"SELECT KANRI_NO, COUNT(KANRI_NO) AS COUNT FROM {WK_MAIN} GROUP BY KANRI_NO HAVING COUNT(KANRI_NO) > 1";
 
                             // データを取得してDataSetに追加
-                            _func.FillDataTable(dataSet, connection, transaction, getDupliDataSqlStr, null, WK_MAIN + "_DUPLI");
+                            _func.FillDataTable(dataSet, connection, transaction, getDupliKanriNoSqlStr, null, WK_MAIN + "_COUNT");
 
-                            for (int i = 0; i < dataSet.Tables[WK_MAIN + "_DUPLI"].Rows.Count; i++)
+                            // 重複した事務局管理番号用リスト
+                            List<string> dupliKanriNoList = new List<string>();
+
+                            // 重複した事務局管理番号をセット
+                            for (int i = 0; i < dataSet.Tables[WK_MAIN + "_COUNT"].Rows.Count; i++)
                             {
-                                // 重複データは取込不可エラーに（WK_IN_MAIN_INSERT_ERRORテーブルに登録）
-                                // インサートSQL文の生成
-                                string mainInsErrorSqlStr = _func.MakeInsertSql(WK_MAIN_INSERT_ERROR, (int)dataSet.Tables[WK_MAIN + "_DUPLI"].Rows[i]["OFFSET"], (int)My_Function.ErrorCd.DuplicateControlNumber);
+                                dupliKanriNoList.Add((string)dataSet.Tables[WK_MAIN + "_COUNT"].Rows[i]["KANRI_NO"]);
+                            }
+
+                            foreach (string kanriNo in dupliKanriNoList)
+                            {
+                                // WK_IN_MAINテーブルの重複したレコードを取得SQL文の生成
+                                string getDupliDataSqlStr = $"SELECT KANRI_NO, OFFSET, LINE_DATA FROM {WK_MAIN} WHERE KANRI_NO = {kanriNo}";
 
                                 // 1レコードのパラメータを辞書で管理
-                                Dictionary<string, object> lineParameters = new Dictionary<string, object>
+                                Dictionary<string, object> dupliKanriNoParameter = new Dictionary<string, object>
                                 {
-                                    { "@line", dataSet.Tables[WK_MAIN + "_DUPLI"].Rows[i]["LINE_DATA"] }
+                                    { "@KanriNo", kanriNo }
                                 };
 
-                                // インサートSQL文を実行
-                                bool mainInsErrorExcuteCheck = _func.Execute(connection, transaction, mainInsErrorSqlStr, lineParameters);
+                                // データを取得してDataSetに追加
+                                _func.FillDataTable(dataSet, connection, transaction, getDupliDataSqlStr, null, WK_MAIN + "_DUPLI");
 
-                                if (!mainInsErrorExcuteCheck)
+                                for (int i = 0; i < dataSet.Tables[WK_MAIN + "_DUPLI"].Rows.Count; i++)
                                 {
-                                    throw new Exception("WK_IN_MAIN_INSERT_ERRテーブルに登録できませんでした。");
-                                }
+                                    // 重複データは取込不可エラーに（WK_IN_MAIN_INSERT_ERRORテーブルに登録）
+                                    // インサートSQL文の生成
+                                    string mainInsErrorSqlStr = _func.MakeInsertSql(WK_MAIN_INSERT_ERROR, (int)dataSet.Tables[WK_MAIN + "_DUPLI"].Rows[i]["OFFSET"], (int)My_Function.ErrorCd.DuplicateControlNumber);
 
-                                // 重複データをWK_IN_MAINテーブルから削除
-                                // デリートSQL文の生成
-                                string mainDeleteSqlStr = _func.MakeDeleteSql(WK_MAIN, (string)dataSet.Tables[WK_MAIN + "_DUPLI"].Rows[i]["KANRI_NO"], (int)dataSet.Tables[WK_MAIN + "_DUPLI"].Rows[i]["OFFSET"]);
+                                    // 1レコードのパラメータを辞書で管理
+                                    Dictionary<string, object> lineParameters = new Dictionary<string, object>
+                                    {
+                                        { "@line", dataSet.Tables[WK_MAIN + "_DUPLI"].Rows[i]["LINE_DATA"] }
+                                    };
 
-                                // 1レコードのパラメータを辞書で管理
-                                Dictionary<string, object> deleteParameter = new Dictionary<string, object>
-                                {
-                                    { "@kanriNo", dataSet.Tables[WK_MAIN + "_DUPLI"].Rows[i]["KANRI_NO"] }
-                                };
+                                    // インサートSQL文を実行
+                                    bool mainInsErrorExcuteCheck = _func.Execute(connection, transaction, mainInsErrorSqlStr, lineParameters);
 
-                                // インサートSQL文を実行
-                                bool mainDeleteExcuteCheck = _func.Execute(connection, transaction, mainDeleteSqlStr, deleteParameter);
+                                    if (!mainInsErrorExcuteCheck)
+                                    {
+                                        MessageBox.Show("WK_IN_MAIN_INSERT_ERRテーブルに登録できませんでした。", "エラー");
+                                    }
 
-                                if (!mainDeleteExcuteCheck)
-                                {
-                                    throw new Exception("WK_IN_MAINテーブルから削除できませんでした。");
+                                    // 重複データをWK_IN_MAINテーブルから削除
+                                    // デリートSQL文の生成
+                                    string mainDeleteSqlStr = _func.MakeDeleteSql(WK_MAIN, (string)dataSet.Tables[WK_MAIN + "_DUPLI"].Rows[i]["KANRI_NO"], (int)dataSet.Tables[WK_MAIN + "_DUPLI"].Rows[i]["OFFSET"]);
+
+                                    // 1レコードのパラメータを辞書で管理
+                                    Dictionary<string, object> deleteParameter = new Dictionary<string, object>
+                                    {
+                                        { "@KanriNo", dataSet.Tables[WK_MAIN + "_DUPLI"].Rows[i]["KANRI_NO"] }
+                                    };
+
+                                    // インサートSQL文を実行
+                                    bool mainDeleteExcuteCheck = _func.Execute(connection, transaction, mainDeleteSqlStr, deleteParameter);
+
+                                    if (!mainDeleteExcuteCheck)
+                                    {
+                                        MessageBox.Show("WK_IN_MAINテーブルから削除できませんでした。", "エラー");
+                                    }
                                 }
                             }
+                            #endregion
+
+                            // 件数表示
+                            Total_Count.Text = (lineNo - 1).ToString();
+                            OK_Count.Text = (_func.getRecordCount(connection, transaction, WK_MAIN, "JYOTAI_KB", "JYOTAI_KB = 0")).ToString();
+                            NG_Count.Text = (_func.getRecordCount(connection, transaction, WK_MAIN, "JYOTAI_KB", "JYOTAI_KB = 1")).ToString();
+                            Layout_Error.Text = (_func.getRecordCount(connection, transaction, WK_MAIN_INSERT_ERROR, "ERR_NO", $"ERR_NO = {(int)My_Function.ErrorCd.LayoutError}")).ToString();
+                            ControlNumber_Error.Text = (_func.getRecordCount(connection, transaction, WK_MAIN_INSERT_ERROR, "ERR_NO", $"ERR_NO = {(int)My_Function.ErrorCd.IncorrectControlNumber}")).ToString();
+                            Imported_Error.Text = (_func.getRecordCount(connection, transaction, WK_MAIN_INSERT_ERROR, "ERR_NO", $"ERR_NO = {(int)My_Function.ErrorCd.ImportedControlNumber}")).ToString();
+                            Duplication_Error.Text = (_func.getRecordCount(connection, transaction, WK_MAIN_INSERT_ERROR, "ERR_NO", $"ERR_NO = {(int)My_Function.ErrorCd.DuplicateControlNumber}")).ToString();
+                            ReceptionDate_Error.Text = (_func.getRecordCount(connection, transaction, WK_MAIN_INSERT_ERROR, "ERR_NO", $"ERR_NO = {(int)My_Function.ErrorCd.IncorrectReceptionDate}")).ToString();
+                            DB_Size_Error.Text = (_func.getRecordCount(connection, transaction, WK_MAIN_INSERT_ERROR, "ERR_NO", $"ERR_NO =  {(int)My_Function.ErrorCd.DBSizeError}")).ToString();
+
+                            // 取り込み不可エラーがある場合
+                            if (_func.getRecordCount(connection, transaction, WK_MAIN_INSERT_ERROR, "ERR_NO") > 0)
+                            {
+                                // エラーログファイル作成
+                                MakeErrLogFile(dataSet, connection, transaction);
+
+                                MessageBox.Show("エラーログファイルを作成しました。", "確認");
+                            }
+
+                            // コミット
+                            transaction.Commit();
                         }
-                        #endregion
-
-                        // 件数表示
-                        Total_Count.Text = (lineNo - 1).ToString();
-                        OK_Count.Text = (_func.getRecordCount(connection, transaction, WK_MAIN, "JYOTAI_KB", "JYOTAI_KB = 0")).ToString();
-                        NG_Count.Text = (_func.getRecordCount(connection, transaction, WK_MAIN, "JYOTAI_KB", "JYOTAI_KB = 1")).ToString();
-                        Layout_Error.Text = (_func.getRecordCount(connection, transaction, WK_MAIN_INSERT_ERROR, "ERR_NO", $"ERR_NO = {(int)My_Function.ErrorCd.LayoutError}")).ToString();
-                        ControlNumber_Error.Text = (_func.getRecordCount(connection, transaction, WK_MAIN_INSERT_ERROR, "ERR_NO", $"ERR_NO = {(int)My_Function.ErrorCd.IncorrectControlNumber}")).ToString();
-                        Imported_Error.Text = (_func.getRecordCount(connection, transaction, WK_MAIN_INSERT_ERROR, "ERR_NO", $"ERR_NO = {(int)My_Function.ErrorCd.ImportedControlNumber}")).ToString();
-                        Duplication_Error.Text = (_func.getRecordCount(connection, transaction, WK_MAIN_INSERT_ERROR, "ERR_NO", $"ERR_NO = {(int)My_Function.ErrorCd.DuplicateControlNumber}")).ToString();
-                        ReceptionDate_Error.Text = (_func.getRecordCount(connection, transaction, WK_MAIN_INSERT_ERROR, "ERR_NO", $"ERR_NO = {(int)My_Function.ErrorCd.IncorrectReceptionDate}")).ToString();
-                        DB_Size_Error.Text = (_func.getRecordCount(connection, transaction, WK_MAIN_INSERT_ERROR, "ERR_NO", $"ERR_NO =  {(int)My_Function.ErrorCd.DBSizeError}")).ToString();
-
-                        // 取り込み不可エラーがある場合
-                        if (_func.getRecordCount(connection, transaction, WK_MAIN_INSERT_ERROR, "ERR_NO") > 0)
-                        {
-                            // エラーログファイル作成
-                            MakeErrLogFile(dataSet, connection, transaction);
-
-                            MessageBox.Show("エラーログファイルを作成しました。", "確認");
-                        }
-
-                        // コミット
-                        transaction.Commit();
                     }
                 }
 
@@ -526,16 +523,10 @@ namespace hagaki
             }
             catch (SqlException sqlex)
             {
-                // nullでなければロールバック
-                transaction?.Rollback();
-
                 MessageBox.Show(sqlex.Message, EXCEPTION_ERROR_TITLE);
             }
             catch (Exception ex)
             {
-                // nullでなければロールバック
-                transaction?.Rollback();
-
                 MessageBox.Show(ex.Message, EXCEPTION_ERROR_TITLE);
             }
         }
@@ -544,9 +535,6 @@ namespace hagaki
         #region 取込
         private void ImportButton_DataImport_Click(object sender, EventArgs e)
         {
-            // トランザクション
-            SqlTransaction transaction = null;
-
             try
             {
                 // 確認ダイアログ表示
@@ -562,100 +550,95 @@ namespace hagaki
                 {
                     connection.Open();
 
-                    using (SqlCommand command = connection.CreateCommand())
+                    // トランザクション開始
+                    using (SqlTransaction transaction = connection.BeginTransaction())
                     {
-                        // トランザクション開始
-                        transaction = connection.BeginTransaction();
-
-                        // DataSetを作成
-                        DataSet dataSet = new DataSet();
-
-                        #region WK_IN_MAINのデータをD_MAINにコピー
-                        // WK_IN_MAINテーブルのデータを取得SQL文の生成
-                        string getWkMainSqlStr = $"SELECT * FROM {WK_MAIN}";
-
-                        // データを取得してDataSetに追加
-                        _func.FillDataTable(dataSet, connection, transaction, getWkMainSqlStr, null, WK_MAIN);
-
-                        // レコードごとの処理
-                        foreach (DataRow row in dataSet.Tables[WK_MAIN].Rows)
+                        using (SqlCommand command = connection.CreateCommand())
                         {
-                            // DataSetのテーブルから値をオブジェクト配列に取得
-                            object[] itemArray = row.ItemArray;
+                            // DataSetを作成
+                            DataSet dataSet = new DataSet();
 
-                            // オブジェクト配列からストリング配列に変換
-                            string[] dataArray = Array.ConvertAll(itemArray, item => item.ToString());
+                            #region WK_IN_MAINのデータをD_MAINにコピー
+                            // WK_IN_MAINテーブルのデータを取得SQL文の生成
+                            string getWkMainSqlStr = $"SELECT * FROM {WK_MAIN}";
 
-                            // D_MAINテーブルのSQL文生成
-                            string dMainStrSql = _func.MakeInsertSql(D_MAIN, 0, int.Parse(dataArray[13]));
+                            // データを取得してDataSetに追加
+                            _func.FillDataTable(dataSet, connection, transaction, getWkMainSqlStr, null, WK_MAIN);
 
-                            // 項目ごとのパラメータを辞書で管理
-                            Dictionary<string, object> parameters = _func.KeyValuePairs(dataArray);
-
-                            // SQL文を実行
-                            bool dMainExcuteCheck = _func.Execute(connection, transaction, dMainStrSql, parameters);
-
-                            if (!dMainExcuteCheck)
+                            // レコードごとの処理
+                            foreach (DataRow row in dataSet.Tables[WK_MAIN].Rows)
                             {
-                                throw new Exception("D_MAINテーブルに登録できませんでした。");
+                                // DataSetのテーブルから値をオブジェクト配列に取得
+                                object[] itemArray = row.ItemArray;
+
+                                // オブジェクト配列からストリング配列に変換
+                                string[] dataArray = Array.ConvertAll(itemArray, item => item.ToString());
+
+                                // D_MAINテーブルのSQL文生成
+                                string dMainStrSql = _func.MakeInsertSql(D_MAIN, 0, int.Parse(dataArray[13]));
+
+                                // 項目ごとのパラメータを辞書で管理
+                                Dictionary<string, object> parameters = _func.KeyValuePairs(dataArray);
+
+                                // SQL文を実行
+                                bool dMainExcuteCheck = _func.Execute(connection, transaction, dMainStrSql, parameters);
+
+                                if (!dMainExcuteCheck)
+                                {
+                                    MessageBox.Show("D_MAINテーブルに登録できませんでした。", "エラー");
+                                }
                             }
-                        }
-                        #endregion
+                            #endregion
 
-                        #region WK_IN_MAIN_ERRORのデータをD_ERRORにコピー
-                        // WK_IN_MAIN_ERRORテーブルのデータを取得SQL文の生成
-                        string getWkMainErrSqlStr = $"SELECT * FROM {WK_MAIN_ERROR}";
+                            #region WK_IN_MAIN_ERRORのデータをD_ERRORにコピー
+                            // WK_IN_MAIN_ERRORテーブルのデータを取得SQL文の生成
+                            string getWkMainErrSqlStr = $"SELECT * FROM {WK_MAIN_ERROR}";
 
-                        // データを取得してDataSetに追加
-                        _func.FillDataTable(dataSet, connection, transaction, getWkMainErrSqlStr, null, WK_MAIN_ERROR);
+                            // データを取得してDataSetに追加
+                            _func.FillDataTable(dataSet, connection, transaction, getWkMainErrSqlStr, null, WK_MAIN_ERROR);
 
-                        // レコードごとの処理
-                        foreach (DataRow row in dataSet.Tables[WK_MAIN_ERROR].Rows)
-                        {
-                            // D_ERRORテーブルのSQL文生成
-                            string dErrorStrSql = _func.MakeInsertSql(D_ERROR, 0, int.Parse(row["ERR_CD"].ToString()));
-
-                            // 1レコードのパラメータを辞書で管理
-                            Dictionary<string, object> kanriNoParameter = new Dictionary<string, object>
+                            // レコードごとの処理
+                            foreach (DataRow row in dataSet.Tables[WK_MAIN_ERROR].Rows)
                             {
-                                { "@kanriNo", row["KANRI_NO"].ToString() }
-                            };
+                                // D_ERRORテーブルのSQL文生成
+                                string dErrorStrSql = _func.MakeInsertSql(D_ERROR, 0, int.Parse(row["ERR_CD"].ToString()));
 
-                            // SQL文を実行（WK_IN_MAIN_ERRORのデータをD_ERRORに）
-                            bool dErrorExcuteCheck = _func.Execute(connection, transaction, dErrorStrSql, kanriNoParameter);
+                                // 1レコードのパラメータを辞書で管理
+                                Dictionary<string, object> kanriNoParameter = new Dictionary<string, object>
+                                {
+                                    { "@KanriNo", row["KANRI_NO"].ToString() }
+                                };
 
-                            if (!dErrorExcuteCheck)
-                            {
-                                throw new Exception("D_ERRORテーブルに登録できませんでした。");
+                                // SQL文を実行（WK_IN_MAIN_ERRORのデータをD_ERRORに）
+                                bool dErrorExcuteCheck = _func.Execute(connection, transaction, dErrorStrSql, kanriNoParameter);
+
+                                if (!dErrorExcuteCheck)
+                                {
+                                    MessageBox.Show("D_ERRORテーブルに登録できませんでした。", "エラー");
+                                }
                             }
+                            #endregion
+
+                            // WKテーブル初期化
+                            InitWK_Table(connection, transaction);
+
+                            // コミット
+                            transaction.Commit();
                         }
-                        #endregion
-
-                        // コミット
-                        transaction.Commit();
-
-                        // WKテーブル初期化
-                        InitWK_Table(connection, transaction);
-
-                        // 件数初期化
-                        InitCount();
-
-                        MessageBox.Show("取り込みが完了しました。", "確認");
                     }
                 }
+
+                // 件数初期化
+                InitCount();
+
+                MessageBox.Show("取り込みが完了しました。", "確認");
             }
             catch (SqlException sqlex)
             {
-                // nullでなければロールバック
-                transaction?.Rollback();
-
                 MessageBox.Show(sqlex.Message, EXCEPTION_ERROR_TITLE);
             }
             catch (Exception ex)
             {
-                // nullでなければロールバック
-                transaction?.Rollback();
-
                 MessageBox.Show(ex.Message, EXCEPTION_ERROR_TITLE);
             }
         }
@@ -676,6 +659,9 @@ namespace hagaki
         #endregion
 
         #region 件数初期化
+        /// <summary>
+        /// 件数を初期化する
+        /// </summary>
         private void InitCount()
         {
             Total_Count.Text = "";
@@ -698,7 +684,8 @@ namespace hagaki
         /// <summary>
         /// WKテーブル初期化する
         /// </summary>
-        /// <param name="connection">DB接続</param>
+        /// <param name="connection">SqlConnection</param>
+        /// <param name="transaction">SqlTransaction</param>
         private void InitWK_Table(SqlConnection connection, SqlTransaction transaction)
         {
             try
@@ -723,7 +710,7 @@ namespace hagaki
 
                 if (!wkInMainDeleteExcuteCheck || !wkInMainErrorDeleteExcuteCheck || !wkInMainInsertErrDeleteExcuteCheck)
                 {
-                    throw new Exception("WKテーブルの初期化に失敗しました。");
+                    MessageBox.Show("WKテーブルの初期化に失敗しました。", "エラー");
                 }
             }
             catch (SqlException sqlex)
@@ -738,6 +725,12 @@ namespace hagaki
         #endregion
 
         #region エラーログファイル作成
+        /// <summary>
+        /// エラーログファイルを作成する
+        /// </summary>
+        /// <param name="dataSet">DataSet</param>
+        /// <param name="connection">SqlConnection</param>
+        /// <param name="transaction">SqlTransaction</param>
         private void MakeErrLogFile(DataSet dataSet, SqlConnection connection, SqlTransaction transaction)
         {
             // 現在の日時を取得

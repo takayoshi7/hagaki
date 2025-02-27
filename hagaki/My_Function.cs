@@ -1,5 +1,4 @@
-﻿using Microsoft.Office.Interop.Excel;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Data;
@@ -44,7 +43,7 @@ namespace hagaki
             Ank1,
             Ank2,
             Ank3,
-            ErrCd,
+            JyotaiKb,
             NgOutKb,
             HisoOutKb
         }
@@ -73,8 +72,8 @@ namespace hagaki
         {
             Ok,
             Ng,
-            hold,
-            cancel
+            Hold,
+            Cancel
         }
 
         // NG票出力区分
@@ -506,14 +505,6 @@ namespace hagaki
         #endregion
 
 
-        // 半角変換を行うメソッド（簡易的な方法）
-        private string ConvertToHalfWidth(string input)
-        {
-            // ここでは簡易的にToUpper()を使って半角変換を代用していますが、
-            // 必要に応じて実際の半角変換ロジックに置き換えてください
-            return input.ToUpper(); // 例: 半角変換に適した方法に変更
-        }
-
 
 
 
@@ -584,6 +575,15 @@ namespace hagaki
 
 
         #region DataSetにDataTable作成
+        /// <summary>
+        /// DataSetにDataTableを作成する
+        /// </summary>
+        /// <param name="dataSet">DataSet</param>
+        /// <param name="connection">SqlConnection</param>
+        /// <param name="transaction">SqlTransaction</param>
+        /// <param name="query">クエリ</param>
+        /// <param name="parameters">パラメータ</param>
+        /// <param name="tableName">テーブル名</param>
         public void FillDataTable(DataSet dataSet, SqlConnection connection, SqlTransaction transaction, string query, Dictionary<string, object> parameters, string tableName)
         {
             using (SqlCommand command = connection.CreateCommand())
@@ -737,6 +737,46 @@ namespace hagaki
         }
         #endregion
 
+        #region アップデートSQL文作成
+        /// <summary>
+        /// アップデートSQL文作成
+        /// </summary>
+        /// <param name="tableName">テーブル名</param>
+        /// <param name="updateData">更新用データ</param>
+        /// <returns>SQL文</returns>
+        public string MakeUpdateSql(string tableName)
+        {
+            // SQL文の生成
+            StringBuilder sqlStr = new StringBuilder();
+
+            // 現在の日時を取得
+            string nowDateTime = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
+
+            // ログインユーザー名取得
+            string loginID = StCls_Function.GetUser();
+
+            sqlStr.AppendLine($"UPDATE {tableName} SET");
+            sqlStr.AppendLine($" ZIP_CD = @ZipCd,");
+            sqlStr.AppendLine($" ADD_1 = @Add1,");
+            sqlStr.AppendLine($" ADD_2 = @Add2,");
+            sqlStr.AppendLine($" ADD_3 = @Add3,");
+            sqlStr.AppendLine($" ADD_4 = @Add4,");
+            sqlStr.AppendLine($" NAME_SEI = @NameSei,");
+            sqlStr.AppendLine($" NAME_MEI = @NameMei,");
+            sqlStr.AppendLine($" TEL_NO = @TelNo,");
+            sqlStr.AppendLine($" ANK_1 = @Ank1,");
+            sqlStr.AppendLine($" ANK_2 = @Ank2,");
+            sqlStr.AppendLine($" ANK_3 = @Ank3,");
+            sqlStr.AppendLine($" JYOTAI_KB = @JyotaiKb,");
+            sqlStr.AppendLine($" NG_OUT_KB = @NgOutKb,");
+            sqlStr.AppendLine($" HISO_OUT_KB = @HisoOutKb,");
+            sqlStr.AppendLine($" UPDATE_DATETIME = '{nowDateTime}',");
+            sqlStr.AppendLine($" UPDATE_LOGINID = '{loginID}'");
+            sqlStr.AppendLine($" WHERE KANRI_NO = @KanriNo");
+
+            return sqlStr.ToString();
+        }
+        #endregion
 
         #region デリートSQL文作成
         /// <summary>
@@ -755,7 +795,7 @@ namespace hagaki
 
             if (!string.IsNullOrEmpty(kanriNo))
             {
-                sqlStr.AppendLine($" WHERE KANRI_NO = @kanriNo");
+                sqlStr.AppendLine($" WHERE KANRI_NO = @KanriNo");
             }
             if (offset != 0)
             {
@@ -767,6 +807,14 @@ namespace hagaki
         #endregion
 
         #region クエリ実行
+        /// <summary>
+        /// SQLを実行する
+        /// </summary>
+        /// <param name="connection">SqlConnection</param>
+        /// <param name="transaction">SqlTransaction</param>
+        /// <param name="query">クエリ</param>
+        /// <param name="parameters">パラメータ辞書</param>
+        /// <returns>true：成功 / false：失敗</returns>
         public bool Execute(SqlConnection connection, SqlTransaction transaction, string query, Dictionary<string, object> parameters)
         {
             try

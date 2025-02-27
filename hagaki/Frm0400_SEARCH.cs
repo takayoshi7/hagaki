@@ -22,7 +22,6 @@ namespace hagaki
         #region メンバ変数
         private string connectionString = string.Empty;   // 接続文字列
         private My_Function _func;                        // My_Functionを使えるように
-        private Cls_DBConn _conn;                         // Cls_DBConnを使えるように
         private DataTable searchResultTable;              // 検索結果格納テーブル
         private DataTable nothingTable = new DataTable(); // 検索結果が0だった場合の表示テーブル
         #endregion
@@ -51,69 +50,64 @@ namespace hagaki
         #region ロードイベント
         private void Frm0400_SEARCH_Load(object sender, EventArgs e)
         {
-            // トランザクション
-            SqlTransaction transaction = null;
-
             try
             {
                 // My_Functionクラスをインスタンス化
                 _func = new My_Function();
-
-                // Cls_DBConnクラスをインスタンス化
-                _conn = new Cls_DBConn(connectionString);
 
                 // コンボボックス用リストを対象テーブルから取得する
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
                     connection.Open();
 
-                    using (SqlCommand command = connection.CreateCommand())
+                    // トランザクション開始
+                    using (SqlTransaction transaction = connection.BeginTransaction())
                     {
-                        // トランザクション開始
-                        transaction = connection.BeginTransaction();
+                        using (SqlCommand command = connection.CreateCommand())
+                        {
+                            // DataSetを作成
+                            DataSet dataSet = new DataSet();
 
-                        // DataSetを作成
-                        DataSet dataSet = new DataSet();
+                            #region **********状態区分選択コンボボックス用リスト作成**********
+                            // M_JYOTAIテーブルデータを取得SQL文の生成
+                            string jyotaiSqlStr = $"SELECT * FROM {JYOTAI}";
 
-                        #region **********状態区分選択コンボボックス用リスト作成**********
-                        // M_JYOTAIテーブルデータを取得SQL文の生成
-                        string jyotaiSqlStr = $"SELECT * FROM {JYOTAI}";
+                            // データを取得してDataSetに追加
+                            _func.FillDataTable(dataSet, connection, transaction, jyotaiSqlStr, null, JYOTAI);
 
-                        // データを取得してDataSetに追加
-                        _func.FillDataTable(dataSet, connection, transaction, jyotaiSqlStr, null, JYOTAI);
+                            // コンボボックスに設定
+                            JyotaiKb.DataSource = dataSet.Tables[JYOTAI];
+                            JyotaiKb.ValueMember = "JYOTAI_KB";
+                            JyotaiKb.DisplayMember = "JYOTAI_NAME";
 
-                        // コンボボックスに設定
-                        JyotaiKb.DataSource = dataSet.Tables[JYOTAI];
-                        JyotaiKb.ValueMember = "JYOTAI_KB";
-                        JyotaiKb.DisplayMember = "JYOTAI_NAME";
+                            // 初期選択肢を空にする（選択なし）
+                            JyotaiKb.SelectedIndex = -1;
+                            #endregion
 
-                        // 初期選択肢を空にする（選択なし）
-                        JyotaiKb.SelectedIndex = -1;
-                        #endregion
+                            #region **********出力区分選択コンボボックス用リスト作成**********
+                            // M_OUTテーブルデータを取得SQL文の生成
+                            string outSqlStr = $"SELECT * FROM {OUT}";
 
-                        #region **********出力区分選択コンボボックス用リスト作成**********
-                        // M_OUTテーブルデータを取得SQL文の生成
-                        string outSqlStr = $"SELECT * FROM {OUT}";
+                            // データを取得してDataSetに追加
+                            _func.FillDataTable(dataSet, connection, transaction, outSqlStr, null, OUT);
 
-                        // データを取得してDataSetに追加
-                        _func.FillDataTable(dataSet, connection, transaction, outSqlStr, null, OUT);
+                            // コンボボックスに設定
+                            NgOutKb.DataSource = dataSet.Tables[OUT];
+                            NgOutKb.ValueMember = "OUT_KB";
+                            NgOutKb.DisplayMember = "OUT_NAME";
+                            DataTable copyOutTable = dataSet.Tables[OUT].Copy();
+                            HisoOutKb.DataSource = copyOutTable;
+                            HisoOutKb.ValueMember = "OUT_KB";
+                            HisoOutKb.DisplayMember = "OUT_NAME";
 
-                        // コンボボックスに設定
-                        NgOutKb.DataSource = dataSet.Tables[OUT];
-                        NgOutKb.ValueMember = "OUT_KB";
-                        NgOutKb.DisplayMember = "OUT_NAME";
-                        DataTable copyOutTable = dataSet.Tables[OUT].Copy();
-                        HisoOutKb.DataSource = copyOutTable;
-                        HisoOutKb.ValueMember = "OUT_KB";
-                        HisoOutKb.DisplayMember = "OUT_NAME";
+                            // 初期選択肢を空にする（選択なし）
+                            NgOutKb.SelectedIndex = -1;
+                            HisoOutKb.SelectedIndex = -1;
+                            #endregion
 
-                        // 初期選択肢を空にする（選択なし）
-                        NgOutKb.SelectedIndex = -1;
-                        HisoOutKb.SelectedIndex = -1;
-                        #endregion
-
-                        // コミット
-                        transaction.Commit();
+                            // コミット
+                            transaction.Commit();
+                        }
                     }
                 }
 
@@ -156,9 +150,9 @@ namespace hagaki
                 ZipCd.Leave += NumText_Leave;
                 TelNo.Leave += NumText_Leave;
             }
-            catch (IOException ioex)
+            catch (SqlException sqlex)
             {
-                MessageBox.Show(ioex.Message, EXCEPTION_ERROR_TITLE);
+                MessageBox.Show(sqlex.Message, EXCEPTION_ERROR_TITLE);
             }
             catch (Exception ex)
             {
@@ -220,14 +214,8 @@ namespace hagaki
 
                         // SQL文作成用
                         StringBuilder getDmain = new StringBuilder();
-                        getDmain.AppendLine("SELECT KANRI_NO, UKE_DATE, ZIP_CD, " +
-                                            "CONCAT(ADD_1, ADD_2, ADD_3, ' ', ADD_4) AS ADD_ALL, " +
-                                            "NAME_SEI, NAME_MEI, TEL_NO, " +
-                                            "ANK_1, ANK_2, ANK_3, " +
-                                            "JYOTAI_KB, NG_OUT_KB, NG_OUT_DATETIME, NG_OUT_LOGINID, " +
-                                            "HISO_OUT_KB, HISO_OUT_DATETIME, HISO_OUT_LOGINID, " +
-                                            "REGIST_DATETIME, REGIST_LOGINID, " +
-                                            "UPDATE_DATETIME, UPDATE_LOGINID " +
+                        getDmain.AppendLine("SELECT *, " +
+                                            "CONCAT(ADD_1, ADD_2, ADD_3, ' ', ADD_4) AS ADD_ALL " +
                                             $"FROM {D_MAIN} WHERE ");
 
                         // パラメータ作成用
@@ -302,13 +290,19 @@ namespace hagaki
                         _func.FillDataTable(dataSet, connection, null, getDmain.ToString(), parameters, D_MAIN);
 
                         // 絞り込んだD_MAINテーブル取得
-                        searchResultTable = dataSet.Tables[D_MAIN];
+                         searchResultTable = dataSet.Tables[D_MAIN];
 
                         // 検索結果による分岐処理
                         if (searchResultTable.Rows.Count > 0)
                         {
                             // 検索結果あり
                             DataGridView.DataSource = searchResultTable;
+
+                            // ADD_1、ADD_2、ADD_3、ADD_4カラムを非表示にする
+                            DataGridView.Columns["ADD_1"].Visible = false;
+                            DataGridView.Columns["ADD_2"].Visible = false;
+                            DataGridView.Columns["ADD_3"].Visible = false;
+                            DataGridView.Columns["ADD_4"].Visible = false;
                         }
                         else
                         {
@@ -332,7 +326,19 @@ namespace hagaki
         }
         #endregion
 
+        #region 戻る
+        private void BackButton_Click(object sender, EventArgs e)
+        {
+            Close();
+        }
+        #endregion
+
         #region 検索条件リセット
+        /// <summary>
+        /// 入力された検索条件をリセットする
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ResetButton_Click(object sender, EventArgs e)
         {
             BeforeKanriNo.Text = string.Empty;
@@ -347,13 +353,6 @@ namespace hagaki
             JyotaiKb.SelectedIndex = -1;
             NgOutKb.SelectedIndex = -1;
             HisoOutKb.SelectedIndex = -1;
-        }
-        #endregion
-
-        #region 戻る
-        private void BackButton_Click(object sender, EventArgs e)
-        {
-            Close();
         }
         #endregion
 
@@ -398,8 +397,15 @@ namespace hagaki
             // DataGridViewのダブルクリックした行の事務局管理番号を取得
             string selectedKanriNo = DataGridView.CurrentRow.Cells[0].Value.ToString();
 
+            // 絞り込まれたデータの管理番号のみのリスト
+            List<string> searchResultKanriNoList = new List<string>();
+            foreach (DataRow rows in searchResultTable.Rows)
+            {
+                searchResultKanriNoList.Add(rows["KANRI_NO"].ToString());
+            }
+
             // メンテナンス画面に選択した管理番号を渡す
-            Frm0500_MAINTENANCE Frm0500_MAINTENANCE = new Frm0500_MAINTENANCE(connectionString, selectedKanriNo, searchResultTable);
+            Frm0500_MAINTENANCE Frm0500_MAINTENANCE = new Frm0500_MAINTENANCE(connectionString, selectedKanriNo, searchResultKanriNoList);
 
             // メンテナンス画面を開く
             Frm0500_MAINTENANCE.ShowDialog();
