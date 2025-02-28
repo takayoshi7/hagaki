@@ -252,7 +252,8 @@ namespace hagaki
                                         }
                                         else
                                         {
-                                            MessageBox.Show("WK_IN_MAIN_INSERT_ERRテーブルに登録できませんでした。", "エラー");
+                                            MessageBox.Show("WK_IN_MAIN_INSERT_ERRテーブルの登録に失敗しました。", "エラー");
+                                            return;
                                         }
                                     }
                                     #endregion
@@ -336,7 +337,8 @@ namespace hagaki
                                             // 次の繰り返し処理へ
                                             if (!mainInsErrorExcuteCheck)
                                             {
-                                                MessageBox.Show("WK_IN_MAIN_INSERT_ERRテーブルに登録できませんでした。", "エラー");
+                                                MessageBox.Show("WK_IN_MAIN_INSERT_ERRテーブルの登録に失敗しました。", "エラー");
+                                                return;
                                             }
                                         }
                                     }
@@ -376,7 +378,8 @@ namespace hagaki
 
                                                 if (!mainErrorExcuteCheck)
                                                 {
-                                                    MessageBox.Show("WK_IN_MAIN_ERRORテーブルに登録できませんでした。", "エラー");
+                                                    MessageBox.Show("WK_IN_MAIN_ERRORテーブルの登録に失敗しました。", "エラー");
+                                                    return;
                                                 }
 
                                                 // エラーレベルが2であれば状態区分を1（NG）に
@@ -402,7 +405,7 @@ namespace hagaki
 
                                         if (!mainExcuteCheck)
                                         {
-                                            MessageBox.Show("WK_IN_MAINテーブルに登録できませんでした。", "エラー");
+                                            MessageBox.Show("WK_IN_MAINテーブルの登録に失敗しました。", "エラー");
                                         }
                                     }
                                     #endregion
@@ -459,7 +462,8 @@ namespace hagaki
 
                                     if (!mainInsErrorExcuteCheck)
                                     {
-                                        MessageBox.Show("WK_IN_MAIN_INSERT_ERRテーブルに登録できませんでした。", "エラー");
+                                        MessageBox.Show("WK_IN_MAIN_INSERT_ERRテーブルの登録に失敗しました。", "エラー");
+                                        return;
                                     }
 
                                     // 重複データをWK_IN_MAINテーブルから削除
@@ -477,7 +481,8 @@ namespace hagaki
 
                                     if (!mainDeleteExcuteCheck)
                                     {
-                                        MessageBox.Show("WK_IN_MAINテーブルから削除できませんでした。", "エラー");
+                                        MessageBox.Show("WK_IN_MAINテーブルの削除に失敗しました。", "エラー");
+                                        return;
                                     }
                                 }
                             }
@@ -553,78 +558,77 @@ namespace hagaki
                     // トランザクション開始
                     using (SqlTransaction transaction = connection.BeginTransaction())
                     {
-                        using (SqlCommand command = connection.CreateCommand())
+                        // DataSetを作成
+                        DataSet dataSet = new DataSet();
+
+                        #region WK_IN_MAINのデータをD_MAINにコピー
+                        // WK_IN_MAINテーブルのデータを取得SQL文の生成
+                        string getWkMainSqlStr = $"SELECT * FROM {WK_MAIN}";
+
+                        // データを取得してDataSetに追加
+                        _func.FillDataTable(dataSet, connection, transaction, getWkMainSqlStr, null, WK_MAIN);
+
+                        // レコードごとの処理
+                        foreach (DataRow row in dataSet.Tables[WK_MAIN].Rows)
                         {
-                            // DataSetを作成
-                            DataSet dataSet = new DataSet();
+                            // DataSetのテーブルから値をオブジェクト配列に取得
+                            object[] itemArray = row.ItemArray;
 
-                            #region WK_IN_MAINのデータをD_MAINにコピー
-                            // WK_IN_MAINテーブルのデータを取得SQL文の生成
-                            string getWkMainSqlStr = $"SELECT * FROM {WK_MAIN}";
+                            // オブジェクト配列からストリング配列に変換
+                            string[] dataArray = Array.ConvertAll(itemArray, item => item.ToString());
 
-                            // データを取得してDataSetに追加
-                            _func.FillDataTable(dataSet, connection, transaction, getWkMainSqlStr, null, WK_MAIN);
+                            // D_MAINテーブルのSQL文生成
+                            string dMainStrSql = _func.MakeInsertSql(D_MAIN, 0, int.Parse(dataArray[13]));
 
-                            // レコードごとの処理
-                            foreach (DataRow row in dataSet.Tables[WK_MAIN].Rows)
+                            // 項目ごとのパラメータを辞書で管理
+                            Dictionary<string, object> parameters = _func.KeyValuePairs(dataArray);
+
+                            // SQL文を実行
+                            bool dMainExcuteCheck = _func.Execute(connection, transaction, dMainStrSql, parameters);
+
+                            if (!dMainExcuteCheck)
                             {
-                                // DataSetのテーブルから値をオブジェクト配列に取得
-                                object[] itemArray = row.ItemArray;
-
-                                // オブジェクト配列からストリング配列に変換
-                                string[] dataArray = Array.ConvertAll(itemArray, item => item.ToString());
-
-                                // D_MAINテーブルのSQL文生成
-                                string dMainStrSql = _func.MakeInsertSql(D_MAIN, 0, int.Parse(dataArray[13]));
-
-                                // 項目ごとのパラメータを辞書で管理
-                                Dictionary<string, object> parameters = _func.KeyValuePairs(dataArray);
-
-                                // SQL文を実行
-                                bool dMainExcuteCheck = _func.Execute(connection, transaction, dMainStrSql, parameters);
-
-                                if (!dMainExcuteCheck)
-                                {
-                                    MessageBox.Show("D_MAINテーブルに登録できませんでした。", "エラー");
-                                }
+                                MessageBox.Show("D_MAINテーブルの登録に失敗しました。", "エラー");
+                                return;
                             }
-                            #endregion
-
-                            #region WK_IN_MAIN_ERRORのデータをD_ERRORにコピー
-                            // WK_IN_MAIN_ERRORテーブルのデータを取得SQL文の生成
-                            string getWkMainErrSqlStr = $"SELECT * FROM {WK_MAIN_ERROR}";
-
-                            // データを取得してDataSetに追加
-                            _func.FillDataTable(dataSet, connection, transaction, getWkMainErrSqlStr, null, WK_MAIN_ERROR);
-
-                            // レコードごとの処理
-                            foreach (DataRow row in dataSet.Tables[WK_MAIN_ERROR].Rows)
-                            {
-                                // D_ERRORテーブルのSQL文生成
-                                string dErrorStrSql = _func.MakeInsertSql(D_ERROR, 0, int.Parse(row["ERR_CD"].ToString()));
-
-                                // 1レコードのパラメータを辞書で管理
-                                Dictionary<string, object> kanriNoParameter = new Dictionary<string, object>
-                                {
-                                    { "@KanriNo", row["KANRI_NO"].ToString() }
-                                };
-
-                                // SQL文を実行（WK_IN_MAIN_ERRORのデータをD_ERRORに）
-                                bool dErrorExcuteCheck = _func.Execute(connection, transaction, dErrorStrSql, kanriNoParameter);
-
-                                if (!dErrorExcuteCheck)
-                                {
-                                    MessageBox.Show("D_ERRORテーブルに登録できませんでした。", "エラー");
-                                }
-                            }
-                            #endregion
-
-                            // WKテーブル初期化
-                            InitWK_Table(connection, transaction);
-
-                            // コミット
-                            transaction.Commit();
                         }
+                        #endregion
+
+                        #region WK_IN_MAIN_ERRORのデータをD_ERRORにコピー
+                        // WK_IN_MAIN_ERRORテーブルのデータを取得SQL文の生成
+                        string getWkMainErrSqlStr = $"SELECT * FROM {WK_MAIN_ERROR}";
+
+                        // データを取得してDataSetに追加
+                        _func.FillDataTable(dataSet, connection, transaction, getWkMainErrSqlStr, null, WK_MAIN_ERROR);
+
+                        // レコードごとの処理
+                        foreach (DataRow row in dataSet.Tables[WK_MAIN_ERROR].Rows)
+                        {
+                            // D_ERRORテーブルのSQL文生成
+                            string dErrorStrSql = _func.MakeInsertSql(D_ERROR, 0, int.Parse(row["ERR_CD"].ToString()));
+
+                            // 1レコードのパラメータを辞書で管理
+                            Dictionary<string, object> kanriNoParameter = new Dictionary<string, object>
+                            {
+                                { "@KanriNo", row["KANRI_NO"].ToString() }
+                            };
+
+                            // SQL文を実行（WK_IN_MAIN_ERRORのデータをD_ERRORに）
+                            bool dErrorExcuteCheck = _func.Execute(connection, transaction, dErrorStrSql, kanriNoParameter);
+
+                            if (!dErrorExcuteCheck)
+                            {
+                                MessageBox.Show("D_ERRORテーブルの登録に失敗しました。", "エラー");
+                                return;
+                            }
+                        }
+                        #endregion
+
+                        // WKテーブル初期化
+                        InitWK_Table(connection, transaction);
+
+                        // コミット
+                        transaction.Commit();
                     }
                 }
 
@@ -710,16 +714,16 @@ namespace hagaki
 
                 if (!wkInMainDeleteExcuteCheck || !wkInMainErrorDeleteExcuteCheck || !wkInMainInsertErrDeleteExcuteCheck)
                 {
-                    MessageBox.Show("WKテーブルの初期化に失敗しました。", "エラー");
+                    throw new Exception("WKテーブルの初期化に失敗しました。");
                 }
             }
-            catch (SqlException sqlex)
+            catch (SqlException)
             {
-                MessageBox.Show(sqlex.Message, EXCEPTION_ERROR_TITLE);
+                throw;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                MessageBox.Show(ex.Message, EXCEPTION_ERROR_TITLE);
+                throw;
             }
         }
         #endregion
@@ -854,8 +858,6 @@ namespace hagaki
         #region クロージングイベント
         private void Frm0100_IN_DATA_FormClosing(object sender, FormClosingEventArgs e)
         {
-            SqlTransaction transaction = null;
-
             try
             {
                 // 読込処理後、取込処理が行われていない場合
@@ -877,25 +879,24 @@ namespace hagaki
                         connection.Open();
 
                         // トランザクション開始
-                        transaction = connection.BeginTransaction();
+                        using (SqlTransaction transaction = connection.BeginTransaction())
+                        {
+                            // WKテーブル初期化
+                            InitWK_Table(connection, transaction);
 
-                        // WKテーブル初期化
-                        InitWK_Table(connection, transaction);
-
-                        // コミット
-                        transaction.Commit();
+                            // コミット
+                            transaction.Commit();
+                        }
                     }
                 }
             }
             catch (SqlException sqlex)
             {
-                // nullでなければロールバック
-                transaction?.Rollback();
+                MessageBox.Show(sqlex.Message, EXCEPTION_ERROR_TITLE);
             }
             catch (Exception ex)
             {
-                // nullでなければロールバック
-                transaction?.Rollback();
+                MessageBox.Show(ex.Message, EXCEPTION_ERROR_TITLE);
             }
         }
         #endregion

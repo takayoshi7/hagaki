@@ -603,7 +603,17 @@ namespace hagaki
                 using (SqlDataAdapter adapter = new SqlDataAdapter(command))
                 {
                     // DataTableにデータを取得し、DataSetに追加
-                    adapter.Fill(dataSet, tableName);
+                    //adapter.Fill(dataSet, tableName);
+
+                    try
+                    {
+                        adapter.Fill(dataSet, tableName);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Fillでエラー: " + ex.Message);
+                        throw; // 例外を再スロー
+                    }
                 }
             }
         }

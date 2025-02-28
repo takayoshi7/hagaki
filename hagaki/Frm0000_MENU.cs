@@ -94,7 +94,7 @@ namespace hagaki
                         Frm0200_OUT_NG_DATA.ShowDialog();
                         break;
                     case "OutputDeliveryData_Menu":
-                        Frm0300_OUT_HISO_DATA Frm0300_OUT_HISO_DATA = new Frm0300_OUT_HISO_DATA();
+                        Frm0300_OUT_HISO_DATA Frm0300_OUT_HISO_DATA = new Frm0300_OUT_HISO_DATA(connectionString);
                         Frm0300_OUT_HISO_DATA.ShowDialog();
                         break;
                     case "Search_Menu":

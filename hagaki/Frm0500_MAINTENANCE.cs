@@ -273,7 +273,8 @@ namespace hagaki
 
                         if (!dErrorDeleteExcuteCheck)
                         {
-                            throw new Exception("D_ERRORテーブルから削除できませんでした。");
+                            MessageBox.Show("D_ERRORテーブルの削除に失敗しました。", "エラー");
+                            return;
                         }
 
                         if (errorList.Count != 0)
@@ -289,7 +290,8 @@ namespace hagaki
 
                                 if (!dErrorExcuteCheck)
                                 {
-                                    throw new Exception("D_ERRORテーブルに登録できませんでした。");
+                                    MessageBox.Show("D_ERRORテーブルの登録に失敗しました。", "エラー");
+                                    return;
                                 }
                             }
                         }
@@ -308,7 +310,8 @@ namespace hagaki
 
                         if (!dMainUpdateExcuteCheck)
                         {
-                            throw new Exception("D_MAINテーブルを更新できませんでした。");
+                            MessageBox.Show("D_MAINテーブルの更新に失敗しました。", "エラー");
+                            return;
                         }
 
                         // コミット
@@ -369,86 +372,93 @@ namespace hagaki
         /// <param name="e"></param>
         private void MoveRecord(object sender, EventArgs e)
         {
-            // 押されたボタンのName取得
-            string selectMove = ((Button)sender).Name;
-
-            // 移動先のレコードが無ければメッセージ表示
-            switch (selectMove)
+            try
             {
-                case "PrevButton":
-                    if (currentPage == 0)
-                    {
-                        MessageBox.Show("これ以上先にレコードは存在しません。", "警告");
-                        return;
-                    }
-                    break;
-                case "NextButton":
-                    if (currentPage == maxPage - 1)
-                    {
-                        MessageBox.Show("これ以上先にレコードは存在しません。", "警告");
-                        return;
-                    }
-                    break;
-            }
+                // 押されたボタンのName取得
+                string selectMove = ((Button)sender).Name;
 
-            // 内容変更後、更新せず移動しようとしているかチェック
-            bool changeDataFlag = ChangeDataCheck();
-
-            // 内容変更して更新していなければ確認
-            if (!changeDataFlag)
-            {
-                // 確認ダイアログ表示
-                DialogResult result = MessageBox.Show("更新されていません。移動しますが、よろしいでしょうか？", "確認", MessageBoxButtons.YesNo);
-
-                if (result == DialogResult.No)
+                // 移動先のレコードが無ければメッセージ表示
+                switch (selectMove)
                 {
-                    return;
+                    case "PrevButton":
+                        if (currentPage == 0)
+                        {
+                            MessageBox.Show("これ以上先にレコードは存在しません。", "警告");
+                            return;
+                        }
+                        break;
+                    case "NextButton":
+                        if (currentPage == maxPage - 1)
+                        {
+                            MessageBox.Show("これ以上先にレコードは存在しません。", "警告");
+                            return;
+                        }
+                        break;
                 }
-            }
 
-            // 押されたボタンによって現在のページ番号を増減
-            switch (selectMove)
+                // 内容変更後、更新せず移動しようとしているかチェック
+                bool changeDataFlag = ChangeDataCheck();
+
+                // 内容変更して更新していなければ確認
+                if (!changeDataFlag)
+                {
+                    // 確認ダイアログ表示
+                    DialogResult result = MessageBox.Show("更新されていません。移動しますが、よろしいでしょうか？", "確認", MessageBoxButtons.YesNo);
+
+                    if (result == DialogResult.No)
+                    {
+                        return;
+                    }
+                }
+
+                // 押されたボタンによって現在のページ番号を増減
+                switch (selectMove)
+                {
+                    case "PrevButton":
+                        if (currentPage == 1)
+                        {
+                            PrevButton.BackColor = SystemColors.ControlDark;
+                            PrevButton.Cursor = Cursors.Default;
+                        }
+                        NextButton.BackColor = Color.MediumSlateBlue;
+                        NextButton.Cursor = Cursors.Hand;
+
+                        // 現在のページ番号を一つ減らす
+                        currentPage -= 1;
+                        break;
+                    case "NextButton":
+                        if (currentPage == maxPage - 2)
+                        {
+                            NextButton.BackColor = SystemColors.ControlDark;
+                            NextButton.Cursor = Cursors.Default;
+                        }
+                        PrevButton.BackColor = Color.MediumSlateBlue;
+                        PrevButton.Cursor = Cursors.Hand;
+
+                        // 現在のページ番号を一つ増やす
+                        currentPage += 1;
+                        break;
+                }
+
+                // 取得用事務局管理番号取得
+                selectedKanriNo = searchResultKanriNoList[currentPage];
+
+                // 選択されている管理番号のレコード情報取得
+                GetCurrentRecord(selectedKanriNo);
+
+                // 選択したレコード情報表示
+                SetTextBox();
+
+                // エラーコードがあれば取得
+                GetCurrentErrorCode();
+
+                // ページ表示
+                DispPage();
+            }
+            catch (Exception ex)
             {
-                case "PrevButton":
-                    if (currentPage == 1)
-                    {
-                        PrevButton.BackColor = SystemColors.ControlDark;
-                        PrevButton.Cursor = Cursors.Default;
-                    }
-                    NextButton.BackColor = Color.MediumSlateBlue;
-                    NextButton.Cursor = Cursors.Hand;
-
-                    // 現在のページ番号を一つ減らす
-                    currentPage -= 1;
-                    break;
-                case "NextButton":
-                    if (currentPage == maxPage - 2)
-                    {
-                        NextButton.BackColor = SystemColors.ControlDark;
-                        NextButton.Cursor = Cursors.Default;
-                    }
-                    PrevButton.BackColor = Color.MediumSlateBlue;
-                    PrevButton.Cursor = Cursors.Hand;
-
-                    // 現在のページ番号を一つ増やす
-                    currentPage += 1;
-                    break;
+                MessageBox.Show(ex.Message, EXCEPTION_ERROR_TITLE);
             }
-
-            // 取得用事務局管理番号取得
-            selectedKanriNo = searchResultKanriNoList[currentPage];
-
-            // 選択されている管理番号のレコード情報取得
-            GetCurrentRecord(selectedKanriNo);
-
-            // 選択したレコード情報表示
-            SetTextBox();
-
-            // エラーコードがあれば取得
-            GetCurrentErrorCode();
-
-            // ページ表示
-            DispPage();
         }
         #endregion
 
@@ -464,32 +474,29 @@ namespace hagaki
                 // 接続を開く
                 connection.Open();
 
-                using (SqlCommand command = connection.CreateCommand())
+                DataSet dataSet = new DataSet();
+
+                // レコードのエラーコード取得SQL文の生成
+                StringBuilder query = new StringBuilder();
+                query.AppendLine($"SELECT * FROM {D_MAIN} WHERE KANRI_NO = @kanriNo0");
+
+                // パラメータ作成用
+                Dictionary<string, object> parameters = new Dictionary<string, object>();
+                parameters.Add("@KanriNo0", $"{searchResultKanriNoList[0]}");
+
+                if (searchResultKanriNoList.Count() > 1)
                 {
-                    DataSet dataSet = new DataSet();
-
-                    // レコードのエラーコード取得SQL文の生成
-                    StringBuilder query = new StringBuilder();
-                    query.AppendLine($"SELECT * FROM {D_MAIN} WHERE KANRI_NO = @kanriNo0");
-
-                    // パラメータ作成用
-                    Dictionary<string, object> parameters = new Dictionary<string, object>();
-                    parameters.Add("@KanriNo0", $"{searchResultKanriNoList[0]}");
-
-                    if (searchResultKanriNoList.Count() > 1)
+                    for (int i = 1; i < searchResultKanriNoList.Count(); i++)
                     {
-                        for (int i = 1; i < searchResultKanriNoList.Count(); i++)
-                        {
-                            query.AppendLine($" OR KANRI_NO = @KanriNo{i}");
-                            parameters.Add($"@KanriNo{i}", $"{searchResultKanriNoList[i]}");
-                        }
+                        query.AppendLine($" OR KANRI_NO = @KanriNo{i}");
+                        parameters.Add($"@KanriNo{i}", $"{searchResultKanriNoList[i]}");
                     }
-
-                    // 検索結果取得
-                    _func.FillDataTable(dataSet, connection, null, query.ToString(), parameters, "SEARCH_DATA");
-
-                    searchResultData = dataSet.Tables["SEARCH_DATA"];
                 }
+
+                // 検索結果取得
+                _func.FillDataTable(dataSet, connection, null, query.ToString(), parameters, "SEARCH_DATA");
+
+                searchResultData = dataSet.Tables["SEARCH_DATA"];
             }
         }
         #endregion
@@ -521,23 +528,20 @@ namespace hagaki
                 // 接続を開く
                 connection.Open();
 
-                using (SqlCommand command = connection.CreateCommand())
+                DataSet dataSet = new DataSet();
+
+                // レコードのエラーコード取得SQL文の生成
+                string query = $"SELECT {D_ERROR}.KANRI_NO, {D_ERROR}.ERR_CD, {M_ERROR}.ERR_MONGON FROM {D_ERROR} " +
+                                        $"INNER JOIN {M_ERROR} ON {D_ERROR}.ERR_CD = {M_ERROR}.ERR_CD " +
+                                        $"ORDER BY {D_ERROR}.KANRI_NO ASC";
+
+                // 検索結果取得
+                _func.FillDataTable(dataSet, connection, null, query, null, "ErrorCode");
+
+                // DataSetにDataTableが存在すれば、ErrorCodeテーブルを変数にセット
+                if (dataSet.Tables.Count > 0)
                 {
-                    DataSet dataSet = new DataSet();
-
-                    // レコードのエラーコード取得SQL文の生成
-                    string query = $"SELECT {D_ERROR}.KANRI_NO, {D_ERROR}.ERR_CD, {M_ERROR}.ERR_MONGON FROM {D_ERROR} " +
-                                            $"INNER JOIN {M_ERROR} ON {D_ERROR}.ERR_CD = {M_ERROR}.ERR_CD " +
-                                            $"ORDER BY {D_ERROR}.KANRI_NO ASC";
-
-                    // 検索結果取得
-                    _func.FillDataTable(dataSet, connection, null, query, null, "ErrorCode");
-
-                    // DataSetにDataTableが存在すれば、ErrorCodeテーブルを変数にセット
-                    if (dataSet.Tables.Count > 0)
-                    {
-                        fullErrorCodeData = dataSet.Tables["ErrorCode"];
-                    }
+                    fullErrorCodeData = dataSet.Tables["ErrorCode"];
                 }
             }
         }

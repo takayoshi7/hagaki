@@ -119,9 +119,6 @@ namespace hagaki
         #region 件数確認
         private void CheckNumCaseButton_Click(object sender, EventArgs e)
         {
-            // トランザクション
-            SqlTransaction transaction = null;
-
             try
             {
                 // 件数初期化
@@ -132,65 +129,59 @@ namespace hagaki
                     // 接続を開く
                     connection.Open();
 
-                    using (SqlCommand command = connection.CreateCommand())
-                    {
-                        // トランザクション開始
-                        transaction = connection.BeginTransaction();
+                    // DataSetを作成
+                    DataSet dataSet = new DataSet();
 
-                        // DataSetを作成
-                        DataSet dataSet = new DataSet();
+                    // D_MAINテーブルのNG票出力対象データを取得SQL文の生成
+                    StringBuilder ngSubjectDMainSqlStr = new StringBuilder();
+                    ngSubjectDMainSqlStr.AppendLine("SELECT");
+                    ngSubjectDMainSqlStr.AppendLine(" DM.KANRI_NO,");
+                    ngSubjectDMainSqlStr.AppendLine(" UKE_DATE,");
+                    ngSubjectDMainSqlStr.AppendLine(" ZIP_CD,");
+                    ngSubjectDMainSqlStr.AppendLine(" ADD_1,");
+                    ngSubjectDMainSqlStr.AppendLine(" ADD_2,");
+                    ngSubjectDMainSqlStr.AppendLine(" ADD_3,");
+                    ngSubjectDMainSqlStr.AppendLine(" ADD_4,");
+                    ngSubjectDMainSqlStr.AppendLine(" NAME_SEI,");
+                    ngSubjectDMainSqlStr.AppendLine(" NAME_MEI,");
+                    ngSubjectDMainSqlStr.AppendLine(" TEL_NO,");
+                    ngSubjectDMainSqlStr.AppendLine(" ANK_1,");
+                    ngSubjectDMainSqlStr.AppendLine(" ANK_2,");
+                    ngSubjectDMainSqlStr.AppendLine(" ANK_3,");
+                    ngSubjectDMainSqlStr.AppendLine(" DE.ERR_CD,");
+                    ngSubjectDMainSqlStr.AppendLine(" ERR_MONGON");
+                    ngSubjectDMainSqlStr.AppendLine($" FROM {D_MAIN} AS DM");
+                    ngSubjectDMainSqlStr.AppendLine($" INNER JOIN {D_ERROR} AS DE ON DM.KANRI_NO = DE.KANRI_NO");
+                    ngSubjectDMainSqlStr.AppendLine($" INNER JOIN {M_ERROR} AS ME ON DE.ERR_CD = ME.ERR_CD");
+                    ngSubjectDMainSqlStr.AppendLine(" WHERE JYOTAI_KB = 1 AND NG_OUT_KB = 0");
+                    ngSubjectDMainSqlStr.AppendLine(" ORDER BY DE.ERR_CD ASC, DM.KANRI_NO ASC");
 
-                        // D_MAINテーブルのNG票出力対象データを取得SQL文の生成
-                        StringBuilder ngSubjectDMainSqlStr = new StringBuilder();
-                        ngSubjectDMainSqlStr.AppendLine("SELECT");
-                        ngSubjectDMainSqlStr.AppendLine(" DM.KANRI_NO,");
-                        ngSubjectDMainSqlStr.AppendLine(" UKE_DATE,");
-                        ngSubjectDMainSqlStr.AppendLine(" ZIP_CD,");
-                        ngSubjectDMainSqlStr.AppendLine(" ADD_1,");
-                        ngSubjectDMainSqlStr.AppendLine(" ADD_2,");
-                        ngSubjectDMainSqlStr.AppendLine(" ADD_3,");
-                        ngSubjectDMainSqlStr.AppendLine(" ADD_4,");
-                        ngSubjectDMainSqlStr.AppendLine(" NAME_SEI,");
-                        ngSubjectDMainSqlStr.AppendLine(" NAME_MEI,");
-                        ngSubjectDMainSqlStr.AppendLine(" TEL_NO,");
-                        ngSubjectDMainSqlStr.AppendLine(" ANK_1,");
-                        ngSubjectDMainSqlStr.AppendLine(" ANK_2,");
-                        ngSubjectDMainSqlStr.AppendLine(" ANK_3,");
-                        ngSubjectDMainSqlStr.AppendLine(" DE.ERR_CD,");
-                        ngSubjectDMainSqlStr.AppendLine(" ERR_MONGON");
-                        ngSubjectDMainSqlStr.AppendLine($" FROM {D_MAIN} AS DM");
-                        ngSubjectDMainSqlStr.AppendLine($" INNER JOIN {D_ERROR} AS DE ON DM.KANRI_NO = DE.KANRI_NO");
-                        ngSubjectDMainSqlStr.AppendLine($" INNER JOIN {M_ERROR} AS ME ON DE.ERR_CD = ME.ERR_CD");
-                        ngSubjectDMainSqlStr.AppendLine(" WHERE JYOTAI_KB = 1 AND NG_OUT_KB = 0");
-                        ngSubjectDMainSqlStr.AppendLine(" ORDER BY DE.ERR_CD ASC, DM.KANRI_NO ASC");
+                    // データを取得してDataSetに追加
+                    _func.FillDataTable(dataSet, connection, null, ngSubjectDMainSqlStr.ToString(), null, D_MAIN + "_NG");
 
-                        // データを取得してDataSetに追加
-                        _func.FillDataTable(dataSet, connection, transaction, ngSubjectDMainSqlStr.ToString(), null, D_MAIN + "_NG");
+                    // D_MAIN_NGテーブル取得
+                    noOutNgTable = dataSet.Tables[D_MAIN + "_NG"];
+                }
 
-                        // D_MAIN_NGテーブル取得
-                        noOutNgTable = dataSet.Tables[D_MAIN + "_NG"];
+                // 事務局管理番号だけのリスト作成
+                foreach (DataRow record in noOutNgTable.Rows)
+                {
+                    ngKanriNoList.Add(record["KANRI_NO"].ToString());
+                }
 
-                        // 事務局管理番号だけのリスト作成
-                        foreach (DataRow record in noOutNgTable.Rows)
-                        {
-                            ngKanriNoList.Add(record["KANRI_NO"].ToString());
-                        }
+                // 重複削除して昇順に並び替え
+                ngKanriNoList = ngKanriNoList.Distinct().OrderBy(x => x).ToList();
 
-                        // 重複削除して昇順に並び替え
-                        ngKanriNoList = ngKanriNoList.Distinct().OrderBy(x => x).ToList();
+                // 件数表示
+                NgCountLabel.Text = ngKanriNoList.Count.ToString();
 
-                        // 件数表示
-                        NgCountLabel.Text = ngKanriNoList.Count.ToString();
-
-                        // 件数が0件以上であれば
-                        if (int.Parse(NgCountLabel.Text) > 0)
-                        {
-                            // 出力ボタン活性化
-                            OutputButton.Enabled = true;
-                            OutputButton.BackColor = SystemColors.GradientActiveCaption;
-                            OutputButton.Cursor = Cursors.Hand;
-                        }
-                    }
+                // 件数が0件以上であれば
+                if (int.Parse(NgCountLabel.Text) > 0)
+                {
+                    // 出力ボタン活性化
+                    OutputButton.Enabled = true;
+                    OutputButton.BackColor = SystemColors.GradientActiveCaption;
+                    OutputButton.Cursor = Cursors.Hand;
                 }
             }
             catch (SqlException sqlex)
@@ -342,39 +333,37 @@ namespace hagaki
                     // トランザクション開始
                     using (SqlTransaction transaction = connection.BeginTransaction())
                     {
-                        using (SqlCommand command = connection.CreateCommand())
+                        // D_MAINを更新
+                        foreach (string kanriNo in ngKanriNoList)
                         {
-                            // D_MAINを更新
-                            foreach (string kanriNo in ngKanriNoList)
+                            // D_MAINアップデートSQL文の作成
+                            StringBuilder dMainNgOutUpdateSql = new StringBuilder();
+                            dMainNgOutUpdateSql.AppendLine($"UPDATE {D_MAIN} SET");
+                            dMainNgOutUpdateSql.AppendLine($" NG_OUT_KB = '1',");
+                            dMainNgOutUpdateSql.AppendLine($" NG_OUT_DATETIME = '{nowDateTime_DB}',");
+                            dMainNgOutUpdateSql.AppendLine($" NG_OUT_LOGINID = '{loginID}',");
+                            dMainNgOutUpdateSql.AppendLine($" UPDATE_DATETIME = '{nowDateTime_DB}',");
+                            dMainNgOutUpdateSql.AppendLine($" UPDATE_LOGINID = '{loginID}'");
+                            dMainNgOutUpdateSql.AppendLine($" WHERE KANRI_NO = @KanriNo");
+
+                            // パラメータ
+                            Dictionary<string, object> kanriNoParameter = new Dictionary<string, object>
                             {
-                                // D_MAINアップデートSQL文の作成
-                                StringBuilder dMainNgOutUpdateSql = new StringBuilder();
-                                dMainNgOutUpdateSql.AppendLine($"UPDATE {D_MAIN} SET");
-                                dMainNgOutUpdateSql.AppendLine($" NG_OUT_KB = '1',");
-                                dMainNgOutUpdateSql.AppendLine($" NG_OUT_DATETIME = '{nowDateTime_DB}',");
-                                dMainNgOutUpdateSql.AppendLine($" NG_OUT_LOGINID = '{loginID}',");
-                                dMainNgOutUpdateSql.AppendLine($" UPDATE_DATETIME = '{nowDateTime_DB}',");
-                                dMainNgOutUpdateSql.AppendLine($" UPDATE_LOGINID = '{loginID}'");
-                                dMainNgOutUpdateSql.AppendLine($" WHERE KANRI_NO = @KanriNo");
+                                { "@KanriNo", kanriNo }
+                            };
 
-                                // パラメータ
-                                Dictionary<string, object> kanriNoParameter = new Dictionary<string, object>
-                                {
-                                    { "@KanriNo", kanriNo }
-                                };
+                            // D_MAINアップデートSQL文を実行
+                            bool dMainOutExcuteCheck = _func.Execute(connection, transaction, dMainNgOutUpdateSql.ToString(), kanriNoParameter);
 
-                                // D_MAINアップデートSQL文を実行
-                                bool dMainOutExcuteCheck = _func.Execute(connection, transaction, dMainNgOutUpdateSql.ToString(), kanriNoParameter);
-
-                                if (!dMainOutExcuteCheck)
-                                {
-                                    MessageBox.Show("D_MAINテーブルを更新できませんでした。", "エラー");
-                                }
+                            if (!dMainOutExcuteCheck)
+                            {
+                                MessageBox.Show("D_MAINテーブルの更新に失敗しました。", "エラー");
+                                return;
                             }
-
-                            // コミット
-                            transaction.Commit();
                         }
+
+                        // コミット
+                        transaction.Commit();
                     }
                 }
 
