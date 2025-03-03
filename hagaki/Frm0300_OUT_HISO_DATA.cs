@@ -8,6 +8,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
@@ -17,11 +18,12 @@ namespace hagaki
     public partial class Frm0300_OUT_HISO_DATA : Form
     {
         #region メンバ変数
-        private string connectionString = string.Empty;            // 接続文字列
-        private My_Function _func;                                 // My_Functionを使えるように
-        private string outHisoFolderPath = string.Empty;           // 配送データ出力先フォルダパス
-        private DataTable noOutHisoTable;                          // 配送データ出力対象データテーブル
-        private List<string> hisoKanriNoList = new List<string>(); // 事務局管理番号のみのリスト
+        private string connectionString = string.Empty;                // 接続文字列
+        private My_Function _func;                                     // My_Functionを使えるように
+        private string outHisoFolderPath = string.Empty;               // 配送データ出力先フォルダパス
+        private DataTable noOutHisoTable;                              // 配送データ出力対象データテーブル
+        private List<string> hisoKanriNoList = new List<string>();     // 事務局管理番号のみのリスト
+        private Encoding encoding = Encoding.GetEncoding("Shift_JIS"); // CSVファイル出力時に使うEncoding（Shift_JIS）
         #endregion
 
         #region 定数
@@ -123,6 +125,17 @@ namespace hagaki
                     // トランザクション開始
                     using (SqlTransaction transaction = connection.BeginTransaction())
                     {
+                        // WK_HISOデリートSQL文の生成
+                        string wkHisoDeleteSql = _func.MakeDeleteSql(WK_HISO);
+
+                        // WK_HISOデリートSQL文を実行
+                        bool wkHisoDeleteCheck = _func.Execute(connection, transaction, wkHisoDeleteSql, null);
+                        if (!wkHisoDeleteCheck)
+                        {
+                            MessageBox.Show("WK_HISOテーブルの初期化に失敗しました。", "エラー");
+                            return;
+                        }
+
                         // DataSetを作成
                         DataSet dataSet = new DataSet();
 
@@ -189,6 +202,7 @@ namespace hagaki
                                 if (!hisoExecuteCheck)
                                 {
                                     MessageBox.Show("WK_HISOテーブルの登録に失敗しました。", "エラー");
+                                    return;
                                 }
                             }
 
@@ -198,9 +212,9 @@ namespace hagaki
                             OutputButton.Cursor = Cursors.Hand;
 
                             // 件数確認ボタンを非活性化
-                            CheckNumCaseButton.Enabled = false;
-                            CheckNumCaseButton.BackColor = SystemColors.ControlDark;
-                            CheckNumCaseButton.Cursor = Cursors.Default;
+                            //CheckNumCaseButton.Enabled = false;
+                            //CheckNumCaseButton.BackColor = SystemColors.ControlDark;
+                            //CheckNumCaseButton.Cursor = Cursors.Default;
                         }
 
                         // コミット
@@ -222,84 +236,64 @@ namespace hagaki
         #region 配送データ出力
         private void OutputButton_Click(object sender, EventArgs e)
         {
-            // 確認ダイアログ表示
-            DialogResult outCsvResult = MessageBox.Show("出力してもよろしいでしょうか？", "確認", MessageBoxButtons.YesNo);
+            // プログレスダイアログを作成
+            ProgressDialog progressDialog = new ProgressDialog();
 
-            // いいえを選択したら出力キャンセル
-            if (outCsvResult == DialogResult.No)
+            try
             {
-                return;
-            }
+                // 確認ダイアログ表示
+                DialogResult outCsvResult = MessageBox.Show("出力してもよろしいでしょうか？", "確認", MessageBoxButtons.YesNo);
 
-            // 現在の日時を取得
-            DateTime now = DateTime.Now;
-
-            // CSV出力
-            CSVExport(now);
-
-            //現在の日時を変換（DB用）
-            string nowDateTime_DB = now.ToString("yyyy/MM/dd HH:mm:ss");
-
-            // ログインユーザー名取得
-            string loginID = StCls_Function.GetUser();
-
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            {
-                // 接続を開く
-                connection.Open();
-
-                // トランザクション開始
-                using (SqlTransaction transaction = connection.BeginTransaction())
+                // いいえを選択したら出力キャンセル
+                if (outCsvResult == DialogResult.No)
                 {
-                    // D_MAINを更新
-                    foreach (string kanriNo in hisoKanriNoList)
+                    return;
+                }
+
+                // 出力先フォルダがない場合フォルダを作成する
+                if (!Directory.Exists(outHisoFolderPath))
+                {
+                    Directory.CreateDirectory(outHisoFolderPath);
+                }
+
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    // 接続を開く
+                    connection.Open();
+
+                    // トランザクション開始
+                    using (SqlTransaction transaction = connection.BeginTransaction())
                     {
-                        // D_MAINアップデートSQL文の作成
-                        StringBuilder dMainHisoOutUpdateSql = new StringBuilder();
-                        dMainHisoOutUpdateSql.AppendLine($"UPDATE {D_MAIN} SET");
-                        dMainHisoOutUpdateSql.AppendLine($" HISO_OUT_KB = '1',");
-                        dMainHisoOutUpdateSql.AppendLine($" HISO_OUT_DATETIME = '{nowDateTime_DB}',");
-                        dMainHisoOutUpdateSql.AppendLine($" HISO_OUT_LOGINID = '{loginID}',");
-                        dMainHisoOutUpdateSql.AppendLine($" UPDATE_DATETIME = '{nowDateTime_DB}',");
-                        dMainHisoOutUpdateSql.AppendLine($" UPDATE_LOGINID = '{loginID}'");
-                        dMainHisoOutUpdateSql.AppendLine($" WHERE KANRI_NO = @KanriNo");
+                        // プログレスダイアログを作成し、進捗管理する処理とTupleを使ってオブジェクトを渡す
+                        ProgressDialog pd = new ProgressDialog(new DoWorkEventHandler(ProgressDialog_DoWork), new Tuple<SqlConnection, SqlTransaction>(connection, transaction));
 
-                        // パラメータ
-                        Dictionary<string, object> kanriNoParameter = new Dictionary<string, object>
-                            {
-                                { "@KanriNo", kanriNo }
-                            };
+                        // ダイアログの結果を確認して処理
+                        DialogResult result = pd.ShowDialog();
 
-                        // D_MAINアップデートSQL文を実行
-                        bool dMainOutExcuteCheck = _func.Execute(connection, transaction, dMainHisoOutUpdateSql.ToString(), kanriNoParameter);
-
-                        if (!dMainOutExcuteCheck)
+                        if (result == DialogResult.Cancel || result == DialogResult.Abort)
                         {
-                            MessageBox.Show("D_MAINテーブルの更新に失敗しました。", "エラー");
+                            // キャンセルまたはエラーの場合
                             return;
                         }
+
+                        // コミット
+                        transaction.Commit();
                     }
-
-                    // WK_HISOデリートSQL文の生成
-                    string wkHisoDeleteSql = _func.MakeDeleteSql(WK_HISO);
-
-                    // WK_HISOデリートSQL文を実行
-                    bool wkHisoDeleteCheck = _func.Execute(connection, transaction, wkHisoDeleteSql, null);
-                    if (!wkHisoDeleteCheck)
-                    {
-                        MessageBox.Show("WK_HISOテーブルの初期化に失敗しました。", "エラー");
-                        return;
-                    }
-
-                    // コミット
-                    transaction.Commit();
                 }
+
+                // 件数初期化
+                InitHisoCount();
+
+                MessageBox.Show("配送データを出力しました。", "確認");
             }
-
-            // 件数初期化
-            InitHisoCount();
-
-            MessageBox.Show("配送データを出力しました。", "確認");
+            catch (SqlException sqlex)
+            {
+                MessageBox.Show(sqlex.Message, EXCEPTION_ERROR_TITLE);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, EXCEPTION_ERROR_TITLE);
+            }
         }
         #endregion
 
@@ -324,23 +318,66 @@ namespace hagaki
         }
         #endregion
 
-        #region CSV出力
+        #region CSV用データ作成
         /// <summary>
-        /// 配送データをCSVファイルに出力する
+        /// 値はダブルクォテーションで囲まれ、カンマ区切りされた1行の文字列を作成する
         /// </summary>
-        private void CSVExport(DateTime now)
+        /// <param name="hisoRow">1レコードのデータ</param>
+        /// <returns>1行のデータ</returns>
+        private string CSVExport(DataRow hisoRow)
         {
-            // CSVファイル出力時に使うEncoding（Shift_JIS）
-            Encoding encoding = Encoding.GetEncoding("Shift_JIS");
+            // データ行
+            string rowStr = string.Empty;
+            // 事務局管理番号
+            rowStr += "\"" + hisoRow["KANRI_NO"].ToString() + "\",";
+            // 郵便番号
+            if (encoding.GetByteCount(hisoRow["ZIP_CD"].ToString()) == 7 )
+            {
+                // 7バイトならハイフンを付ける
+                rowStr += "\"" + hisoRow["ZIP_CD"].ToString().Insert(3, "-") + "\",";
+            }
+            else
+            {
+                rowStr += "\"" + hisoRow["ZIP_CD"].ToString() + "\",";
+            }
+            // 住所1
+            rowStr += "\"" + hisoRow["ADD_1"].ToString() + "\",";
+            // 住所2
+            rowStr += "\"" + hisoRow["ADD_2"].ToString() + "\",";
+            // 住所3
+            rowStr += "\"" + hisoRow["ADD_3"].ToString() + "\",";
+            // 住所4
+            rowStr += "\"" + hisoRow["ADD_4"].ToString() + "\",";
+            // 氏名(姓)
+            rowStr += "\"" + hisoRow["NAME_SEI"].ToString() + "\",";
+            // 氏名(名)
+            rowStr += "\"" + hisoRow["NAME_MEI"].ToString() + "\"";
+
+            return rowStr;
+        }
+        #endregion
+
+        #region CSV出力とDB更新
+        /// <summary>
+        /// CSV出力とDB更新を行う
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ProgressDialog_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+
+            // 現在の日時を取得
+            DateTime now = DateTime.Now;
 
             // 現在の日時を変換（ファイル名用）
             string nowDateTime_file = now.ToString("yyyyMMddHHmmss");
 
-            // 出力先フォルダがない場合フォルダを作成する
-            if (!Directory.Exists(outHisoFolderPath))
-            {
-                Directory.CreateDirectory(outHisoFolderPath);
-            }
+            //現在の日時を変換（DB用）
+            string nowDateTime_DB = now.ToString("yyyy/MM/dd HH:mm:ss");
+
+            // ログインユーザー名取得
+            string loginID = StCls_Function.GetUser();
 
             int i = 0;
 
@@ -353,42 +390,91 @@ namespace hagaki
             // 出力先ファイルパス
             string outHisoFilePath = outHisoFolderPath + "hiso_" + nowDateTime_file + _func.NumStr(i) + ".csv";
 
+            // 出力対象の最大件数
+            double maximumValue = noOutHisoTable.Rows.Count;
+
+            // 進捗率
+            int progressRatio = 0;
+
+            // 完了したレコード数
+            int count = 0;
+
             // CSVファイルを作成
             using (StreamWriter sw = new StreamWriter(outHisoFilePath, false, encoding))
             {
-                // ヘッダー行
-                sw.WriteLine("事務局管理番号,郵便番号,住所1,住所2,住所3,住所4,氏名(姓),氏名(名)");
-                // データ行
+                // Tupleを使ってSqlConnectionとSqlTransactionを取得
+                Tuple<SqlConnection, SqlTransaction> tuple = (Tuple<SqlConnection, SqlTransaction>)e.Argument;
+                SqlConnection connection = tuple.Item1;
+                SqlTransaction transaction = tuple.Item2;
+
                 foreach (DataRow hisoRow in noOutHisoTable.Rows)
                 {
-                    string rowStr = string.Empty;
-                    // 事務局管理番号
-                    rowStr += "\"" + hisoRow["KANRI_NO"].ToString() + "\",";
-                    // 郵便番号
-                    if (encoding.GetByteCount(hisoRow["ZIP_CD"].ToString()) == 7 )
-                    {
-                        // 7バイトならハイフンを付ける
-                        rowStr += "\"" + hisoRow["ZIP_CD"].ToString().Insert(3, "-") + "\",";
-                    }
-                    else
-                    {
-                        rowStr += "\"" + hisoRow["ZIP_CD"].ToString() + "\",";
-                    }
-                    // 住所1
-                    rowStr += "\"" + hisoRow["ADD_1"].ToString() + "\",";
-                    // 住所2
-                    rowStr += "\"" + hisoRow["ADD_2"].ToString() + "\",";
-                    // 住所3
-                    rowStr += "\"" + hisoRow["ADD_3"].ToString() + "\",";
-                    // 住所4
-                    rowStr += "\"" + hisoRow["ADD_4"].ToString() + "\",";
-                    // 氏名(姓)
-                    rowStr += "\"" + hisoRow["NAME_SEI"].ToString() + "\",";
-                    // 氏名(名)
-                    rowStr += "\"" + hisoRow["NAME_MEI"].ToString() + "\"";
+                    // CSV用データ作成
+                    string rowStr = CSVExport(hisoRow);
 
-                    // 1レコード書き込み
+                    // 1行書き込み
                     sw.WriteLine(rowStr);
+
+                    #region D_MAINを更新
+                    // D_MAINアップデートSQL文の作成
+                    StringBuilder dMainHisoOutUpdateSql = new StringBuilder();
+                    dMainHisoOutUpdateSql.AppendLine($"UPDATE {D_MAIN} SET");
+                    dMainHisoOutUpdateSql.AppendLine($" HISO_OUT_KB = '1',");
+                    dMainHisoOutUpdateSql.AppendLine($" HISO_OUT_DATETIME = '{nowDateTime_DB}',");
+                    dMainHisoOutUpdateSql.AppendLine($" HISO_OUT_LOGINID = '{loginID}',");
+                    dMainHisoOutUpdateSql.AppendLine($" UPDATE_DATETIME = '{nowDateTime_DB}',");
+                    dMainHisoOutUpdateSql.AppendLine($" UPDATE_LOGINID = '{loginID}'");
+                    dMainHisoOutUpdateSql.AppendLine($" WHERE KANRI_NO = @KanriNo");
+
+                    // パラメータ
+                    Dictionary<string, object> kanriNoParameter = new Dictionary<string, object>
+                        {
+                            { "@KanriNo", hisoRow["KANRI_NO"].ToString() }
+                        };
+
+                    // D_MAINアップデートSQL文を実行
+                    bool dMainOutExcuteCheck = _func.Execute(connection, transaction, dMainHisoOutUpdateSql.ToString(), kanriNoParameter);
+
+                    if (!dMainOutExcuteCheck)
+                    {
+                        MessageBox.Show("D_MAINテーブルの更新に失敗しました。", "エラー");
+                        transaction.Rollback();
+                        return;
+                    }
+                    #endregion
+
+                    // 1レコードの進捗割合を足す
+                    count++;
+                    progressRatio = (int)Math.Round((count / maximumValue) * 100);
+                    // 100%を超えないように制限
+                    progressRatio = Math.Min(progressRatio, 100);
+
+                    // キャンセルされたか確認
+                    if (worker.CancellationPending)
+                    {
+                        e.Cancel = true;
+                        return;
+                    }
+
+                    // 進捗更新
+                    worker.ReportProgress(progressRatio);
+
+                    if (progressRatio == 100)
+                    {
+                        // 進捗率が100%になったら少し表示させたままにする
+                        Thread.Sleep(150);
+                    }
+                }
+
+                // WK_HISOデリートSQL文の生成
+                string wkHisoDeleteSql = _func.MakeDeleteSql(WK_HISO);
+
+                // WK_HISOデリートSQL文を実行
+                bool wkHisoDeleteCheck = _func.Execute(connection, transaction, wkHisoDeleteSql, null);
+                if (!wkHisoDeleteCheck)
+                {
+                    e.Result = new Exception("WK_HISOテーブルの初期化に失敗しました。");
+                    return;
                 }
             }
         }

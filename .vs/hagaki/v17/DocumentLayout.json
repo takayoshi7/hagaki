@@ -7,12 +7,8 @@
       "RelativeMoniker": "D:0:0:{F6642F8E-3657-4758-BA2D-9720501FF096}|hagaki\\hagaki.csproj|solutionrelative:hagaki\\frm0300_out_hiso_data.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{F6642F8E-3657-4758-BA2D-9720501FF096}|hagaki\\hagaki.csproj|c:\\users\\takahashi\\source\\repos\\hagaki\\hagaki\\progressdialog.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
-      "RelativeMoniker": "D:0:0:{F6642F8E-3657-4758-BA2D-9720501FF096}|hagaki\\hagaki.csproj|solutionrelative:hagaki\\progressdialog.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F6642F8E-3657-4758-BA2D-9720501FF096}|hagaki\\hagaki.csproj|c:\\users\\takahashi\\source\\repos\\hagaki\\hagaki\\frm0200_out_ng_data.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F6642F8E-3657-4758-BA2D-9720501FF096}|hagaki\\hagaki.csproj|solutionrelative:hagaki\\frm0200_out_ng_data.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{F6642F8E-3657-4758-BA2D-9720501FF096}|hagaki\\hagaki.csproj|C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\progressdialog.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F6642F8E-3657-4758-BA2D-9720501FF096}|hagaki\\hagaki.csproj|solutionrelative:hagaki\\progressdialog.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{F6642F8E-3657-4758-BA2D-9720501FF096}|hagaki\\hagaki.csproj|C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\my_function.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -26,33 +22,8 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 0,
           "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "ProgressDialog.cs [\u30C7\u30B6\u30A4\u30F3]",
-              "DocumentMoniker": "C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\ProgressDialog.cs",
-              "RelativeDocumentMoniker": "hagaki\\ProgressDialog.cs",
-              "ToolTip": "C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\ProgressDialog.cs [\u30C7\u30B6\u30A4\u30F3]",
-              "RelativeToolTip": "hagaki\\ProgressDialog.cs [\u30C7\u30B6\u30A4\u30F3]",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-02-27T08:16:09.082Z",
-              "EditorCaption": " [\u30C7\u30B6\u30A4\u30F3]"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "Frm0200_OUT_NG_DATA.cs",
-              "DocumentMoniker": "C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\Frm0200_OUT_NG_DATA.cs",
-              "RelativeDocumentMoniker": "hagaki\\Frm0200_OUT_NG_DATA.cs",
-              "ToolTip": "C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\Frm0200_OUT_NG_DATA.cs",
-              "RelativeToolTip": "hagaki\\Frm0200_OUT_NG_DATA.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAMUAAAAIAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-02-27T04:27:21.939Z",
-              "EditorCaption": ""
-            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
@@ -61,22 +32,35 @@
               "RelativeDocumentMoniker": "hagaki\\Frm0300_OUT_HISO_DATA.cs",
               "ToolTip": "C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\Frm0300_OUT_HISO_DATA.cs",
               "RelativeToolTip": "hagaki\\Frm0300_OUT_HISO_DATA.cs",
-              "ViewState": "AgIAAOQAAAAAAAAAAAAgwOwAAAAUAAAAAAAAAA==",
+              "ViewState": "AgIAAJAAAAAAAAAAAAAgwKMAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-02-27T02:34:16.643Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 2,
               "Title": "My_Function.cs",
               "DocumentMoniker": "C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\My_Function.cs",
               "RelativeDocumentMoniker": "hagaki\\My_Function.cs",
               "ToolTip": "C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\My_Function.cs",
               "RelativeToolTip": "hagaki\\My_Function.cs",
-              "ViewState": "AgIAAEUCAAAAAAAAAAAmwEoCAACuAAAAAAAAAA==",
+              "ViewState": "AgIAAD0CAAAAAAAAAAAqwDIDAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-02-13T04:37:42.33Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ProgressDialog.cs",
+              "DocumentMoniker": "C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\ProgressDialog.cs",
+              "RelativeDocumentMoniker": "hagaki\\ProgressDialog.cs",
+              "ToolTip": "C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\ProgressDialog.cs",
+              "RelativeToolTip": "hagaki\\ProgressDialog.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAFUAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-02-28T00:45:12.485Z",
               "EditorCaption": ""
             }
           ]

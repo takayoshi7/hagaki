@@ -15,3 +15,4 @@ C:\Users\takahashi\source\repos\hagaki\hagaki\obj\Debug\hagaki.Frm0300_OUT_HISO_
 C:\Users\takahashi\source\repos\hagaki\hagaki\obj\Debug\hagaki.Frm0400_SEARCH.resources
 C:\Users\takahashi\source\repos\hagaki\hagaki\obj\Debug\hagaki.Frm0500_MAINTENANCE.resources
 C:\Users\takahashi\source\repos\hagaki\hagaki\obj\Debug\hagaki.Frm0600_OUT_REPORT.resources
+C:\Users\takahashi\source\repos\hagaki\hagaki\obj\Debug\hagaki.ProgressDialog.resources

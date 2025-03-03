@@ -85,9 +85,9 @@
             // HisoCountLabel
             // 
             this.HisoCountLabel.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.HisoCountLabel.Location = new System.Drawing.Point(345, 119);
+            this.HisoCountLabel.Location = new System.Drawing.Point(320, 119);
             this.HisoCountLabel.Name = "HisoCountLabel";
-            this.HisoCountLabel.Size = new System.Drawing.Size(53, 15);
+            this.HisoCountLabel.Size = new System.Drawing.Size(78, 15);
             this.HisoCountLabel.TabIndex = 29;
             this.HisoCountLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 

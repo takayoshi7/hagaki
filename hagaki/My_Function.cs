@@ -730,7 +730,7 @@ namespace hagaki
                 sqlStr.AppendLine("@Ank1,");
                 sqlStr.AppendLine("@Ank2,");
                 sqlStr.AppendLine("@Ank3,");
-                sqlStr.AppendLine($"{err_cd},");
+                sqlStr.AppendLine($"'{err_cd}',");
                 sqlStr.AppendLine($"'{offset}',");
                 sqlStr.AppendLine("'0',");
                 sqlStr.AppendLine("@Line)");
