@@ -218,6 +218,12 @@ namespace hagaki
                     MessageBox.Show("雛型エクセルファイルが見つかりませんでした。", "確認");
                 }
 
+                // 出力先フォルダがない場合フォルダを作成する
+                if (!Directory.Exists(outNgFolderPath))
+                {
+                    Directory.CreateDirectory(outNgFolderPath);
+                }
+
                 // 現在の日時を取得
                 DateTime nowDateTime = DateTime.Now;
 
@@ -226,12 +232,6 @@ namespace hagaki
 
                 // 現在の日時を変換（エクセル表示＆DB用）
                 string nowDateTime_DB = nowDateTime.ToString("yyyy/MM/dd HH:mm:ss");
-
-                // 出力先フォルダがない場合フォルダを作成する
-                if (!Directory.Exists(outNgFolderPath))
-                {
-                    Directory.CreateDirectory(outNgFolderPath);
-                }
 
                 int i = 0;
 

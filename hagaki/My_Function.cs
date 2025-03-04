@@ -504,11 +504,6 @@ namespace hagaki
         }
         #endregion
 
-
-
-
-
-
         #region 値の強制変換
         /// <summary>
         /// 配列の値をテーブル登録用に変換する
@@ -571,9 +566,6 @@ namespace hagaki
         }
         #endregion
 
-
-
-
         #region DataSetにDataTable作成
         /// <summary>
         /// DataSetにDataTableを作成する
@@ -602,11 +594,9 @@ namespace hagaki
 
                 using (SqlDataAdapter adapter = new SqlDataAdapter(command))
                 {
-                    // DataTableにデータを取得し、DataSetに追加
-                    //adapter.Fill(dataSet, tableName);
-
                     try
                     {
+                        // DataTableにデータを取得し、DataSetに追加
                         adapter.Fill(dataSet, tableName);
                     }
                     catch (Exception ex)
@@ -618,8 +608,6 @@ namespace hagaki
             }
         }
         #endregion
-
-
 
         #region インサートSQL文作成
         /// <summary>
@@ -634,7 +622,7 @@ namespace hagaki
             // SQL文の生成
             StringBuilder sqlStr = new StringBuilder();
 
-            // 読込時、登録不可の場合
+            #region 読込時、登録不可の場合
             if (tableName == WK_MAIN_INSERT_ERROR)
             {
                 sqlStr.AppendLine($"INSERT INTO {WK_MAIN_INSERT_ERROR}");
@@ -643,8 +631,45 @@ namespace hagaki
 
                 return sqlStr.ToString();
             }
+            #endregion
 
-            // 取込ボタン押下時
+            #region 読込時、取込可能の場合
+            if (tableName == WK_MAIN)
+            {
+                sqlStr.AppendLine($"INSERT INTO {WK_MAIN}(");
+                sqlStr.AppendLine("KANRI_NO, UKE_DATE, ZIP_CD, " +
+                                    "ADD_1, ADD_2, ADD_3, ADD_4, " +
+                                    "NAME_SEI, NAME_MEI, TEL_NO, " +
+                                    "ANK_1, ANK_2, ANK_3, " +
+                                    "JYOTAI_KB, OFFSET, DUPLI_FLG, LINE_DATA) VALUES(");
+                sqlStr.AppendLine("@KanriNo,");
+                sqlStr.AppendLine("@UkeDate,");
+                sqlStr.AppendLine("@ZipCd,");
+                sqlStr.AppendLine("@Add1,");
+                sqlStr.AppendLine("@Add2,");
+                sqlStr.AppendLine("@Add3,");
+                sqlStr.AppendLine("@Add4,");
+                sqlStr.AppendLine("@NameSei,");
+                sqlStr.AppendLine("@NameMei,");
+                sqlStr.AppendLine("@TelNo,");
+                sqlStr.AppendLine("@Ank1,");
+                sqlStr.AppendLine("@Ank2,");
+                sqlStr.AppendLine("@Ank3,");
+                sqlStr.AppendLine($"'{err_cd}',");
+                sqlStr.AppendLine($"'{offset}',");
+                sqlStr.AppendLine("'0',");
+                sqlStr.AppendLine("@Line)");
+            }
+            else if (tableName == WK_MAIN_ERROR)
+            {
+                sqlStr.AppendLine($"INSERT INTO {WK_MAIN_ERROR}(");
+                sqlStr.AppendLine("KANRI_NO, ERR_CD) VALUES (");
+                sqlStr.AppendLine($"@KanriNo,");
+                sqlStr.AppendLine($"{err_cd})");
+            }
+            #endregion
+
+            #region メインテーブル登録
             if (tableName == D_MAIN)
             {
                 // 現在の日時を取得
@@ -694,7 +719,10 @@ namespace hagaki
                 sqlStr.AppendLine("@KanriNo,");
                 sqlStr.AppendLine($"{err_cd})");
             }
-            else if (tableName == WK_HISO)
+            #endregion
+
+            #region 配送出力データ登録
+            if (tableName == WK_HISO)
             {
                 sqlStr.AppendLine($"INSERT INTO {WK_HISO}(");
                 sqlStr.AppendLine("KANRI_NO, ZIP_CD, ADD_1, ADD_2, ADD_3, ADD_4, NAME_SEI, NAME_MEI) VALUES (");
@@ -707,41 +735,7 @@ namespace hagaki
                 sqlStr.AppendLine("@NameSei,");
                 sqlStr.AppendLine("@NameMei)");
             }
-
-            // 読込時、取込可能の場合
-            if (tableName == WK_MAIN)
-            {
-                sqlStr.AppendLine($"INSERT INTO {WK_MAIN}(");
-                sqlStr.AppendLine("KANRI_NO, UKE_DATE, ZIP_CD, " + 
-                                    "ADD_1, ADD_2, ADD_3, ADD_4, " +
-                                    "NAME_SEI, NAME_MEI, TEL_NO, " +
-                                    "ANK_1, ANK_2, ANK_3, " +
-                                    "JYOTAI_KB, OFFSET, DUPLI_FLG, LINE_DATA) VALUES(");
-                sqlStr.AppendLine("@KanriNo,");
-                sqlStr.AppendLine("@UkeDate,");
-                sqlStr.AppendLine("@ZipCd,");
-                sqlStr.AppendLine("@Add1,");
-                sqlStr.AppendLine("@Add2,");
-                sqlStr.AppendLine("@Add3,");
-                sqlStr.AppendLine("@Add4,");
-                sqlStr.AppendLine("@NameSei,");
-                sqlStr.AppendLine("@NameMei,");
-                sqlStr.AppendLine("@TelNo,");
-                sqlStr.AppendLine("@Ank1,");
-                sqlStr.AppendLine("@Ank2,");
-                sqlStr.AppendLine("@Ank3,");
-                sqlStr.AppendLine($"'{err_cd}',");
-                sqlStr.AppendLine($"'{offset}',");
-                sqlStr.AppendLine("'0',");
-                sqlStr.AppendLine("@Line)");
-            }
-            else if (tableName == WK_MAIN_ERROR)
-            {
-                sqlStr.AppendLine($"INSERT INTO {WK_MAIN_ERROR}(");
-                sqlStr.AppendLine("KANRI_NO, ERR_CD) VALUES (");
-                sqlStr.AppendLine($"@KanriNo,");
-                sqlStr.AppendLine($"{err_cd})");
-            }
+            #endregion
 
             return sqlStr.ToString();
         }
@@ -876,8 +870,6 @@ namespace hagaki
             }
         }
         #endregion
-
-
 
         #region ファイル名が重複した時の自動採番
         /// <summary>

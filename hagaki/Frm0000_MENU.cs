@@ -102,7 +102,7 @@ namespace hagaki
                         Frm0400_SEARCH.ShowDialog();
                         break;
                     case "OutputReport_Menu":
-                        Frm0600_OUT_REPORT Frm0600_OUT_REPORT = new Frm0600_OUT_REPORT();
+                        Frm0600_OUT_REPORT Frm0600_OUT_REPORT = new Frm0600_OUT_REPORT(connectionString);
                         Frm0600_OUT_REPORT.ShowDialog();
                         break;
                 }
