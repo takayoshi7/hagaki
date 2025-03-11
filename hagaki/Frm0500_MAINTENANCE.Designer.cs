@@ -570,7 +570,7 @@
             // 
             this.CANCEL_RadioButton.Appearance = System.Windows.Forms.Appearance.Button;
             this.CANCEL_RadioButton.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.CANCEL_RadioButton.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.CANCEL_RadioButton.Font = new System.Drawing.Font("HG丸ｺﾞｼｯｸM-PRO", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.CANCEL_RadioButton.Location = new System.Drawing.Point(302, 9);
             this.CANCEL_RadioButton.Name = "CANCEL_RadioButton";
             this.CANCEL_RadioButton.Size = new System.Drawing.Size(74, 31);

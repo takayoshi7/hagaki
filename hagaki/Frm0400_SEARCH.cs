@@ -21,16 +21,9 @@ namespace hagaki
     {
         #region メンバ変数
         private string connectionString = string.Empty;   // 接続文字列
-        private My_Function _func;                        // My_Functionを使えるように
+        private MyClass _myClass;                         // MyClassを使えるように
         private DataTable searchResultTable;              // 検索結果格納テーブル
         private DataTable nothingTable = new DataTable(); // 検索結果が0だった場合の表示テーブル
-        #endregion
-
-        #region 定数
-        private const string D_MAIN = "D_MAIN";
-        private const string JYOTAI = "M_JYOTAI";
-        private const string OUT = "M_OUT";
-        private const string EXCEPTION_ERROR_TITLE = "例外エラー";
         #endregion
 
         #region コンストラクタ
@@ -52,8 +45,8 @@ namespace hagaki
         {
             try
             {
-                // My_Functionクラスをインスタンス化
-                _func = new My_Function();
+                // MyClassクラスをインスタンス化
+                _myClass = new MyClass();
 
                 // コンボボックス用リストを対象テーブルから取得する
                 using (SqlConnection connection = new SqlConnection(connectionString))
@@ -65,13 +58,13 @@ namespace hagaki
 
                     #region **********状態区分選択コンボボックス用リスト作成**********
                     // M_JYOTAIテーブルデータを取得SQL文の生成
-                    string jyotaiSqlStr = $"SELECT * FROM {JYOTAI}";
+                    string jyotaiSqlStr = $"SELECT * FROM {MyStaticClass.M_JYOTAI}";
 
                     // データを取得してDataSetに追加
-                    _func.FillDataTable(dataSet, connection, null, jyotaiSqlStr, null, JYOTAI);
+                    _myClass.FillDataTable(dataSet, connection, null, jyotaiSqlStr, null, MyStaticClass.M_JYOTAI);
 
                     // コンボボックスに設定
-                    JyotaiKb.DataSource = dataSet.Tables[JYOTAI];
+                    JyotaiKb.DataSource = dataSet.Tables[MyStaticClass.M_JYOTAI];
                     JyotaiKb.ValueMember = "JYOTAI_KB";
                     JyotaiKb.DisplayMember = "JYOTAI_NAME";
 
@@ -81,16 +74,16 @@ namespace hagaki
 
                     #region **********出力区分選択コンボボックス用リスト作成**********
                     // M_OUTテーブルデータを取得SQL文の生成
-                    string outSqlStr = $"SELECT * FROM {OUT}";
+                    string outSqlStr = $"SELECT * FROM {MyStaticClass.M_OUT}";
 
                     // データを取得してDataSetに追加
-                    _func.FillDataTable(dataSet, connection, null, outSqlStr, null, OUT);
+                    _myClass.FillDataTable(dataSet, connection, null, outSqlStr, null, MyStaticClass.M_OUT);
 
                     // コンボボックスに設定
-                    NgOutKb.DataSource = dataSet.Tables[OUT];
+                    NgOutKb.DataSource = dataSet.Tables[MyStaticClass.M_OUT];
                     NgOutKb.ValueMember = "OUT_KB";
                     NgOutKb.DisplayMember = "OUT_NAME";
-                    DataTable copyOutTable = dataSet.Tables[OUT].Copy();
+                    DataTable copyOutTable = dataSet.Tables[MyStaticClass.M_OUT].Copy();
                     HisoOutKb.DataSource = copyOutTable;
                     HisoOutKb.ValueMember = "OUT_KB";
                     HisoOutKb.DisplayMember = "OUT_NAME";
@@ -125,14 +118,14 @@ namespace hagaki
                 nothingTable.Rows.Add(dtrow);
                 #endregion
 
-                // 奇数行（表示上は偶数行）を水色にする
+                // データグリッドビューの交互の行の色を変える
                 DataGridView.AlternatingRowsDefaultCellStyle.BackColor = Color.LightSteelBlue;
 
                 // 数値のみの入力制御
-                BeforeKanriNo.KeyPress += _func.NumTextKeyPress;
-                AfterKanriNo.KeyPress += _func.NumTextKeyPress;
-                ZipCd.KeyPress += _func.NumTextKeyPress;
-                TelNo.KeyPress += _func.NumTextKeyPress;
+                BeforeKanriNo.KeyPress += MyStaticClass.NumTextKeyPress;
+                AfterKanriNo.KeyPress += MyStaticClass.NumTextKeyPress;
+                ZipCd.KeyPress += MyStaticClass.NumTextKeyPress;
+                TelNo.KeyPress += MyStaticClass.NumTextKeyPress;
 
                 // フォーカス外れたときの強制半角制御
                 BeforeKanriNo.Leave += NumText_Leave;
@@ -142,11 +135,11 @@ namespace hagaki
             }
             catch (SqlException sqlex)
             {
-                MessageBox.Show(sqlex.Message, EXCEPTION_ERROR_TITLE);
+                MessageBox.Show(sqlex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, EXCEPTION_ERROR_TITLE);
+                MessageBox.Show(ex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
             }
         }
         #endregion
@@ -203,7 +196,7 @@ namespace hagaki
                     StringBuilder getDmain = new StringBuilder();
                     getDmain.AppendLine("SELECT *, " +
                                         "CONCAT(ADD_1, ADD_2, ADD_3, ' ', ADD_4) AS ADD_ALL " +
-                                        $"FROM {D_MAIN} WHERE ");
+                                        $"FROM {MyStaticClass.D_MAIN} WHERE ");
 
                     // パラメータ作成用
                     Dictionary<string, object> parameters = new Dictionary<string, object>();
@@ -274,10 +267,10 @@ namespace hagaki
                     }
 
                     // 検索結果取得
-                    _func.FillDataTable(dataSet, connection, null, getDmain.ToString(), parameters, D_MAIN);
+                    _myClass.FillDataTable(dataSet, connection, null, getDmain.ToString(), parameters, MyStaticClass.D_MAIN);
 
                     // 絞り込んだD_MAINテーブル取得
-                        searchResultTable = dataSet.Tables[D_MAIN];
+                        searchResultTable = dataSet.Tables[MyStaticClass.D_MAIN];
 
                     // 検索結果による分岐処理
                     if (searchResultTable.Rows.Count > 0)
@@ -303,11 +296,11 @@ namespace hagaki
             }
             catch (SqlException sqlex)
             {
-                MessageBox.Show(sqlex.Message, EXCEPTION_ERROR_TITLE);
+                MessageBox.Show(sqlex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, EXCEPTION_ERROR_TITLE);
+                MessageBox.Show(ex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
             }
         }
         #endregion
@@ -315,7 +308,14 @@ namespace hagaki
         #region 戻る
         private void BackButton_Click(object sender, EventArgs e)
         {
-            Close();
+            try
+            {
+                Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
+            }
         }
         #endregion
 
@@ -327,18 +327,25 @@ namespace hagaki
         /// <param name="e"></param>
         private void ResetButton_Click(object sender, EventArgs e)
         {
-            BeforeKanriNo.Text = string.Empty;
-            AfterKanriNo.Text = string.Empty;
-            BeforeUkeDate.Text = DateTime.Parse("2022/01/01").ToString();
-            AfterUkeDate.Text = DateTime.Now.ToString();
-            ZipCd.Text = string.Empty;
-            Address.Text = string.Empty;
-            Sei.Text = string.Empty;
-            Mei.Text = string.Empty;
-            TelNo.Text = string.Empty;
-            JyotaiKb.SelectedIndex = -1;
-            NgOutKb.SelectedIndex = -1;
-            HisoOutKb.SelectedIndex = -1;
+            try
+            {
+                BeforeKanriNo.Text = string.Empty;
+                AfterKanriNo.Text = string.Empty;
+                BeforeUkeDate.Text = DateTime.Parse("2022/01/01").ToString();
+                AfterUkeDate.Text = DateTime.Now.ToString();
+                ZipCd.Text = string.Empty;
+                Address.Text = string.Empty;
+                Sei.Text = string.Empty;
+                Mei.Text = string.Empty;
+                TelNo.Text = string.Empty;
+                JyotaiKb.SelectedIndex = -1;
+                NgOutKb.SelectedIndex = -1;
+                HisoOutKb.SelectedIndex = -1;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
+            }
         }
         #endregion
 
@@ -380,21 +387,28 @@ namespace hagaki
         /// <param name="e"></param>
         private void DataGridView_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
-            // DataGridViewのダブルクリックした行の事務局管理番号を取得
-            string selectedKanriNo = DataGridView.CurrentRow.Cells[0].Value.ToString();
-
-            // 絞り込まれたデータの管理番号のみのリスト
-            List<string> searchResultKanriNoList = new List<string>();
-            foreach (DataRow rows in searchResultTable.Rows)
+            try
             {
-                searchResultKanriNoList.Add(rows["KANRI_NO"].ToString());
+                // DataGridViewのダブルクリックした行の事務局管理番号を取得
+                string selectedKanriNo = DataGridView.CurrentRow.Cells[0].Value.ToString();
+
+                // 絞り込まれたデータの管理番号のみのリスト
+                List<string> searchResultKanriNoList = new List<string>();
+                foreach (DataRow rows in searchResultTable.Rows)
+                {
+                    searchResultKanriNoList.Add(rows["KANRI_NO"].ToString());
+                }
+
+                // メンテナンス画面に選択した管理番号を渡す
+                Frm0500_MAINTENANCE Frm0500_MAINTENANCE = new Frm0500_MAINTENANCE(connectionString, selectedKanriNo, searchResultKanriNoList);
+
+                // メンテナンス画面を開く
+                Frm0500_MAINTENANCE.ShowDialog();
             }
-
-            // メンテナンス画面に選択した管理番号を渡す
-            Frm0500_MAINTENANCE Frm0500_MAINTENANCE = new Frm0500_MAINTENANCE(connectionString, selectedKanriNo, searchResultKanriNoList);
-
-            // メンテナンス画面を開く
-            Frm0500_MAINTENANCE.ShowDialog();
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
+            }
         }
         #endregion
     }

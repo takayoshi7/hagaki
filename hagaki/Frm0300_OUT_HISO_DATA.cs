@@ -18,20 +18,15 @@ namespace hagaki
     public partial class Frm0300_OUT_HISO_DATA : Form
     {
         #region メンバ変数
-        private string connectionString = string.Empty;                // 接続文字列
-        private My_Function _func;                                     // My_Functionを使えるように
-        private string outHisoFolderPath = string.Empty;               // 配送データ出力先フォルダパス
-        private DataTable noOutHisoTable;                              // 配送データ出力対象データテーブル
-        private List<string> hisoKanriNoList = new List<string>();     // 事務局管理番号のみのリスト
-        private Encoding encoding = Encoding.GetEncoding("Shift_JIS"); // CSVファイル出力時に使うEncoding（Shift_JIS）
+        private string connectionString = string.Empty;            // 接続文字列
+        private MyClass _myClass;                                  // MyClassを使えるように
+        private string outHisoFolderPath = string.Empty;           // 配送データ出力先フォルダパス
+        private DataTable noOutHisoTable;                          // 配送データ出力対象データテーブル
+        private List<string> hisoKanriNoList = new List<string>(); // 事務局管理番号のみのリスト
         #endregion
 
         #region 定数
-        private const string D_MAIN = "D_MAIN";                           // メインテーブル
-        private const string WK_HISO = "WK_HISO";                         // 配送データ出力用テーブル
-        private const string OPERATION_XML = "KensyuSys.xml";             // XMLファイル名
         private const string OUT_HISO_PATH_NODE = "DIR/OUT_HISO_FLDPATH"; // ノード
-        private const string EXCEPTION_ERROR_TITLE = "例外エラー";        // 例外時表示メッセージタイトル
         #endregion
 
         #region コンストラクタ
@@ -54,7 +49,7 @@ namespace hagaki
             try
             {
                 // XMLファイルを読込
-                XElement xEle = XElement.Load(OPERATION_XML);
+                XElement xEle = XElement.Load(MyStaticClass.OPERATION_XML);
 
                 // パスを分解
                 string[] pathParts = OUT_HISO_PATH_NODE.Split('/');
@@ -68,19 +63,19 @@ namespace hagaki
                 // エラーファイル出力先パス表示
                 OutHisoPathLabel.Text = outHisoFolderPath;
 
-                // My_Functionクラスをインスタンス化
-                _func = new My_Function();
+                // MyClassクラスをインスタンス化
+                _myClass = new MyClass();
 
                 // 件数初期化
                 InitHisoCount();
             }
             catch (IOException ioex)
             {
-                MessageBox.Show(ioex.Message, EXCEPTION_ERROR_TITLE);
+                MessageBox.Show(ioex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, EXCEPTION_ERROR_TITLE);
+                MessageBox.Show(ex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
             }
         }
         #endregion
@@ -107,7 +102,7 @@ namespace hagaki
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, EXCEPTION_ERROR_TITLE);
+                MessageBox.Show(ex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
             }
         }
         #endregion
@@ -126,10 +121,10 @@ namespace hagaki
                     using (SqlTransaction transaction = connection.BeginTransaction())
                     {
                         // WK_HISOデリートSQL文の生成
-                        string wkHisoDeleteSql = _func.MakeDeleteSql(WK_HISO);
+                        string wkHisoDeleteSql = MyStaticClass.MakeDeleteSql(MyStaticClass.WK_HISO);
 
                         // WK_HISOデリートSQL文を実行
-                        bool wkHisoDeleteCheck = _func.Execute(connection, transaction, wkHisoDeleteSql, null);
+                        bool wkHisoDeleteCheck = MyStaticClass.Execute(connection, transaction, wkHisoDeleteSql, null);
                         if (!wkHisoDeleteCheck)
                         {
                             MessageBox.Show("WK_HISOテーブルの初期化に失敗しました。", "エラー");
@@ -152,15 +147,15 @@ namespace hagaki
                         getHisoDMainSqlStr.AppendLine(" NAME_MEI,");
                         getHisoDMainSqlStr.AppendLine(" JYOTAI_KB");
                         getHisoDMainSqlStr.AppendLine(" HISO_OUT_KB");
-                        getHisoDMainSqlStr.AppendLine($" FROM {D_MAIN}");
-                        getHisoDMainSqlStr.AppendLine(" WHERE HISO_OUT_KB = 0 AND JYOTAI_KB = 0");
+                        getHisoDMainSqlStr.AppendLine($" FROM {MyStaticClass.D_MAIN}");
+                        getHisoDMainSqlStr.AppendLine($" WHERE HISO_OUT_KB = '{(int)HisoOutKb.Un}' AND JYOTAI_KB = '{(int)JyotaiKb.Ok}'");
                         getHisoDMainSqlStr.AppendLine(" ORDER BY KANRI_NO ASC");
 
                         // データを取得してDataSetに追加
-                        _func.FillDataTable(dataSet, connection, transaction, getHisoDMainSqlStr.ToString(), null, D_MAIN + "_HISO");
+                        _myClass.FillDataTable(dataSet, connection, transaction, getHisoDMainSqlStr.ToString(), null, MyStaticClass.D_MAIN + "_HISO");
 
                         // D_MAIN_HISOテーブル取得
-                        noOutHisoTable = dataSet.Tables[D_MAIN + "_HISO"];
+                        noOutHisoTable = dataSet.Tables[MyStaticClass.D_MAIN + "_HISO"];
 
                         // 事務局管理番号だけのリスト作成
                         foreach (DataRow record in noOutHisoTable.Rows)
@@ -181,7 +176,7 @@ namespace hagaki
                             foreach (DataRow hisoOutRow in noOutHisoTable.Rows)
                             {
                                 // SQL文の生成
-                                string hisoStrSql = _func.MakeInsertSql(WK_HISO);
+                                string hisoStrSql = MyStaticClass.MakeInsertSql(MyStaticClass.WK_HISO);
 
                                 // パラメータ
                                 Dictionary<string, object> parameters = new Dictionary<string, object>
@@ -197,7 +192,7 @@ namespace hagaki
                                 };
 
                                 // SQL文を実行
-                                bool hisoExecuteCheck = _func.Execute(connection, transaction, hisoStrSql, parameters);
+                                bool hisoExecuteCheck = MyStaticClass.Execute(connection, transaction, hisoStrSql, parameters);
 
                                 if (!hisoExecuteCheck)
                                 {
@@ -210,11 +205,6 @@ namespace hagaki
                             OutputButton.Enabled = true;
                             OutputButton.BackColor = SystemColors.GradientActiveCaption;
                             OutputButton.Cursor = Cursors.Hand;
-
-                            // 件数確認ボタンを非活性化
-                            //CheckNumCaseButton.Enabled = false;
-                            //CheckNumCaseButton.BackColor = SystemColors.ControlDark;
-                            //CheckNumCaseButton.Cursor = Cursors.Default;
                         }
 
                         // コミット
@@ -224,11 +214,11 @@ namespace hagaki
             }
             catch (SqlException sqlex)
             {
-                MessageBox.Show(sqlex.Message, EXCEPTION_ERROR_TITLE);
+                MessageBox.Show(sqlex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, EXCEPTION_ERROR_TITLE);
+                MessageBox.Show(ex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
             }
         }
         #endregion
@@ -270,9 +260,9 @@ namespace hagaki
                         // ダイアログの結果を確認して処理
                         DialogResult result = pd.ShowDialog();
 
+                        // キャンセルまたはエラーの場合
                         if (result == DialogResult.Cancel || result == DialogResult.Abort)
                         {
-                            // キャンセルまたはエラーの場合
                             return;
                         }
 
@@ -288,11 +278,11 @@ namespace hagaki
             }
             catch (SqlException sqlex)
             {
-                MessageBox.Show(sqlex.Message, EXCEPTION_ERROR_TITLE);
+                MessageBox.Show(sqlex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, EXCEPTION_ERROR_TITLE);
+                MessageBox.Show(ex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
             }
         }
         #endregion
@@ -300,7 +290,14 @@ namespace hagaki
         #region 戻る
         private void BackButton_Click(object sender, EventArgs e)
         {
-            Close();
+            try
+            {
+                Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
+            }
         }
         #endregion
 
@@ -331,7 +328,7 @@ namespace hagaki
             // 事務局管理番号
             rowStr += "\"" + hisoRow["KANRI_NO"].ToString() + "\",";
             // 郵便番号
-            if (encoding.GetByteCount(hisoRow["ZIP_CD"].ToString()) == 7 )
+            if (MyStaticClass.SJIS.GetByteCount(hisoRow["ZIP_CD"].ToString()) == 7 )
             {
                 // 7バイトならハイフンを付ける
                 rowStr += "\"" + hisoRow["ZIP_CD"].ToString().Insert(3, "-") + "\",";
@@ -382,13 +379,13 @@ namespace hagaki
             int i = 0;
 
             // 出力先CSVファイルの存在チェック（存在していればファイル名に追加する文字列作成）
-            while (File.Exists(outHisoFolderPath + "hiso_" + nowDateTime_file + _func.NumStr(i) + ".csv"))
+            while (File.Exists(outHisoFolderPath + "hiso_" + nowDateTime_file + MyStaticClass.NumStr(i) + ".csv"))
             {
                 i++;
             }
 
             // 出力先ファイルパス
-            string outHisoFilePath = outHisoFolderPath + "hiso_" + nowDateTime_file + _func.NumStr(i) + ".csv";
+            string outHisoFilePath = outHisoFolderPath + "hiso_" + nowDateTime_file + MyStaticClass.NumStr(i) + ".csv";
 
             // 出力対象の最大件数
             double maximumValue = noOutHisoTable.Rows.Count;
@@ -400,7 +397,7 @@ namespace hagaki
             int count = 0;
 
             // CSVファイルを作成
-            using (StreamWriter sw = new StreamWriter(outHisoFilePath, false, encoding))
+            using (StreamWriter sw = new StreamWriter(outHisoFilePath, false, MyStaticClass.SJIS))
             {
                 // Tupleを使ってSqlConnectionとSqlTransactionを取得
                 Tuple<SqlConnection, SqlTransaction> tuple = (Tuple<SqlConnection, SqlTransaction>)e.Argument;
@@ -417,14 +414,7 @@ namespace hagaki
 
                     #region D_MAINを更新
                     // D_MAINアップデートSQL文の作成
-                    StringBuilder dMainHisoOutUpdateSql = new StringBuilder();
-                    dMainHisoOutUpdateSql.AppendLine($"UPDATE {D_MAIN} SET");
-                    dMainHisoOutUpdateSql.AppendLine($" HISO_OUT_KB = '1',");
-                    dMainHisoOutUpdateSql.AppendLine($" HISO_OUT_DATETIME = '{nowDateTime_DB}',");
-                    dMainHisoOutUpdateSql.AppendLine($" HISO_OUT_LOGINID = '{loginID}',");
-                    dMainHisoOutUpdateSql.AppendLine($" UPDATE_DATETIME = '{nowDateTime_DB}',");
-                    dMainHisoOutUpdateSql.AppendLine($" UPDATE_LOGINID = '{loginID}'");
-                    dMainHisoOutUpdateSql.AppendLine($" WHERE KANRI_NO = @KanriNo");
+                    string dMainHisoOutUpdateSql = MyStaticClass.MakeUpdateSql(MyStaticClass.D_MAIN, "OUT_HISO"); ;
 
                     // パラメータ
                     Dictionary<string, object> kanriNoParameter = new Dictionary<string, object>
@@ -433,12 +423,11 @@ namespace hagaki
                         };
 
                     // D_MAINアップデートSQL文を実行
-                    bool dMainOutExcuteCheck = _func.Execute(connection, transaction, dMainHisoOutUpdateSql.ToString(), kanriNoParameter);
+                    bool dMainOutExcuteCheck = MyStaticClass.Execute(connection, transaction, dMainHisoOutUpdateSql.ToString(), kanriNoParameter);
 
                     if (!dMainOutExcuteCheck)
                     {
-                        MessageBox.Show("D_MAINテーブルの更新に失敗しました。", "エラー");
-                        transaction.Rollback();
+                        e.Result = new Exception("D_MAINテーブルの更新に失敗しました。");
                         return;
                     }
                     #endregion
@@ -467,10 +456,10 @@ namespace hagaki
                 }
 
                 // WK_HISOデリートSQL文の生成
-                string wkHisoDeleteSql = _func.MakeDeleteSql(WK_HISO);
+                string wkHisoDeleteSql = MyStaticClass.MakeDeleteSql(MyStaticClass.WK_HISO);
 
                 // WK_HISOデリートSQL文を実行
-                bool wkHisoDeleteCheck = _func.Execute(connection, transaction, wkHisoDeleteSql, null);
+                bool wkHisoDeleteCheck = MyStaticClass.Execute(connection, transaction, wkHisoDeleteSql, null);
                 if (!wkHisoDeleteCheck)
                 {
                     e.Result = new Exception("WK_HISOテーブルの初期化に失敗しました。");

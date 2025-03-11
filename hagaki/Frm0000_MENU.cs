@@ -20,10 +20,6 @@ namespace hagaki
         private string connectionString = string.Empty;      // DB接続文字列
         #endregion
 
-        #region 定数
-        private const string OPERATION_XML = "KensyuSys.xml"; // DB接続情報取得xmlファイル名
-        #endregion
-
         #region コンストラクタ
         public Frm0000_MENU()
         {
@@ -34,26 +30,33 @@ namespace hagaki
         #region ロードイベント
         private void Frm0000_MENU_Load(object sender, EventArgs e)
         {
-            // メニューボタンクリック時制御
-            ImportData_Menu.Click         += new EventHandler(SelectTopMenu);
-            OutputNG_Menu.Click           += new EventHandler(SelectTopMenu);
-            OutputDeliveryData_Menu.Click += new EventHandler(SelectTopMenu);
-            Search_Menu.Click             += new EventHandler(SelectTopMenu);
-            OutputReport_Menu.Click       += new EventHandler(SelectTopMenu);
-            End_Menu.Click                += new EventHandler(SelectTopMenu);
+            try
+            {
+                // メニューボタンクリック時制御
+                ImportData_Menu.Click += new EventHandler(SelectTopMenu);
+                OutputNG_Menu.Click += new EventHandler(SelectTopMenu);
+                OutputDeliveryData_Menu.Click += new EventHandler(SelectTopMenu);
+                Search_Menu.Click += new EventHandler(SelectTopMenu);
+                OutputReport_Menu.Click += new EventHandler(SelectTopMenu);
+                End_Menu.Click += new EventHandler(SelectTopMenu);
 
-            // XMLファイルを読込
-            XElement xEle = XElement.Load(OPERATION_XML);
+                // XMLファイルを読込
+                XElement xEle = XElement.Load(MyStaticClass.OPERATION_XML);
 
-            // 接続文字列作成
-            SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
-            builder.DataSource = Dns.GetHostName();
-            builder.InitialCatalog = xEle.Element("DB")?.Element("DATABASE")?.Value ?? "";
-            builder.UserID = xEle.Element("DB")?.Element("ID")?.Value ?? "";
-            builder.Password = xEle.Element("DB")?.Element("PASSWORD")?.Value ?? "";
-            builder.IntegratedSecurity = false;
+                // 接続文字列作成
+                SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
+                builder.DataSource = Dns.GetHostName();
+                builder.InitialCatalog = xEle.Element("DB")?.Element("DATABASE")?.Value ?? "";
+                builder.UserID = xEle.Element("DB")?.Element("ID")?.Value ?? "";
+                builder.Password = xEle.Element("DB")?.Element("PASSWORD")?.Value ?? "";
+                builder.IntegratedSecurity = false;
 
-            connectionString = builder.ConnectionString;
+                connectionString = builder.ConnectionString;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
+            }
         }
         #endregion
 
@@ -112,7 +115,7 @@ namespace hagaki
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "エラー");
+                MessageBox.Show(ex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
             }
         }
         #endregion

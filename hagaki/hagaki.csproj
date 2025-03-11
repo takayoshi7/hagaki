@@ -109,7 +109,9 @@
     <Compile Include="Frm9000_FileOpenDialog.Designer.cs">
       <DependentUpon>Frm9000_FileOpenDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="My_Function.cs" />
+    <Compile Include="MyClass.cs" />
+    <Compile Include="MyEnum.cs" />
+    <Compile Include="MyStaticClass.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProgressDialog.cs">
       <SubType>Form</SubType>

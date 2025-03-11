@@ -20,16 +20,14 @@ namespace hagaki
     {
         #region メンバ変数
         private string connectionString = string.Empty;    // 接続文字列
-        private My_Function _func;                         // My_Functionを使えるように
+        private MyClass _myClass;                          // MyClassを使えるように
         private string outReportFolderPath = string.Empty; // 報告書データ出力先フォルダパス
+        private DataTable reportTable = new DataTable();   // 報告書データ出力対象データテーブル
         #endregion
 
         #region 定数
-        private const string D_MAIN = "D_MAIN";                                   // メインテーブル
-        private const string OPERATION_XML = "KensyuSys.xml";                     // XMLファイル名
-        private const string OUT_REPORT_PATH_NODE = "DIR/OUT_REPORT_FLDPATH";     // ノード
+        private const string OUT_REPORT_PATH_NODE = "DIR/OUT_REPORT_FLDPATH";      // ノード
         private const string HINA_REPORT_FILE_PATH = "アンケート報告書_雛型.xlsx"; // 雛型になる報告書ファイルのパス
-        private const string EXCEPTION_ERROR_TITLE = "例外エラー";                // 例外時表示メッセージタイトル
         #endregion
 
         #region コンストラクタ
@@ -52,7 +50,7 @@ namespace hagaki
             try
             {
                 // XMLファイルを読込
-                XElement xEle = XElement.Load(OPERATION_XML);
+                XElement xEle = XElement.Load(MyStaticClass.OPERATION_XML);
 
                 // パスを分解
                 string[] pathParts = OUT_REPORT_PATH_NODE.Split('/');
@@ -66,16 +64,16 @@ namespace hagaki
                 // エラーファイル出力先パス表示
                 OutReportPathLabel.Text = outReportFolderPath;
 
-                // My_Functionクラスをインスタンス化
-                _func = new My_Function();
+                // MyClassクラスをインスタンス化
+                _myClass = new MyClass();
             }
             catch (IOException ioex)
             {
-                MessageBox.Show(ioex.Message, EXCEPTION_ERROR_TITLE);
+                MessageBox.Show(ioex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, EXCEPTION_ERROR_TITLE);
+                MessageBox.Show(ex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
             }
         }
         #endregion
@@ -102,7 +100,7 @@ namespace hagaki
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, EXCEPTION_ERROR_TITLE);
+                MessageBox.Show(ex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
             }
         }
         #endregion
@@ -110,11 +108,11 @@ namespace hagaki
         #region 報告書エクセル出力
         private void OutHoukokuButton_Click(object sender, EventArgs e)
         {
-            // エクセルを使えるように
-            Excel.Application excelApp = new Excel.Application();
-
             try
             {
+                // マウスカーソルを砂時計にする
+                Cursor = Cursors.WaitCursor;
+
                 // 出力する受付日の範囲を取得
                 DateTime beforeUkeDate = BeforeUkeDate.Value;
                 DateTime afterUkeDate = AfterUkeDate.Value;
@@ -152,54 +150,115 @@ namespace hagaki
                     Directory.CreateDirectory(outReportFolderPath);
                 }
 
+                // 報告書データ出力対象（D_MAIN_REPORTテーブル）取得
+                reportTable = GetReportData(beforeReportUkeDate, afterReportUkeDate);
+
                 int i = 0;
 
                 // コピー先エクセルファイルの存在チェック（存在していればファイル名に追加する文字列作成）
-                while (File.Exists(outReportFolderPath + "アンケート報告書_" + beforeReportUkeDate + "_" + afterReportUkeDate + _func.NumStr(i) + ".xlsx"))
+                while (File.Exists(outReportFolderPath + "アンケート報告書_" + beforeReportUkeDate + "_" + afterReportUkeDate + MyStaticClass.NumStr(i) + ".xlsx"))
                 {
                     i++;
                 }
 
                 // コピー先ファイルパス
-                string copyFilePath = outReportFolderPath + "アンケート報告書_" + beforeReportUkeDate + "_" + afterReportUkeDate + _func.NumStr(i) + ".xlsx";
+                string copyFilePath = outReportFolderPath + "アンケート報告書_" + beforeReportUkeDate + "_" + afterReportUkeDate + MyStaticClass.NumStr(i) + ".xlsx";
 
                 // 雛型エクセルファイルをコピーする
                 File.Copy(HINA_REPORT_FILE_PATH, copyFilePath);
 
-                #region 報告書出力用データ取得
-                // 報告書データ出力対象データテーブル
-                DataTable reportTable = new DataTable();
+                // 報告書エクセル出力
+                OutputReport(beforeUkeDate, afterUkeDate, copyFilePath);
 
-                using (SqlConnection connection = new SqlConnection(connectionString))
-                {
-                    // DBを開く
-                    connection.Open();
+                // マウスカーソルを元に戻す
+                Cursor = Cursors.Default;
 
-                    // DataSetを作成
-                    DataSet dataSet = new DataSet();
+                MessageBox.Show("報告書データを出力しました。", "確認");
+            }
+            catch (SqlException sqlex)
+            {
+                MessageBox.Show(sqlex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
+            }
+        }
+        #endregion
 
-                    // SQL文作成用
-                    StringBuilder getReportDMain = new StringBuilder();
-                    getReportDMain.AppendLine($"SELECT KANRI_NO, UKE_DATE, ANK_1, ANK_2, ANK_3 FROM {D_MAIN}");
-                    getReportDMain.AppendLine(" WHERE UKE_DATE >= @beforeUkeDate AND UKE_DATE <= @afterUkeDate");
-                    getReportDMain.AppendLine(" ORDER BY UKE_DATE ASC");
+        #region 戻る
+        private void BackButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
+            }
+        }
+        #endregion
 
-                    // パラメータ作成用
-                    Dictionary<string, object> parameters = new Dictionary<string, object>()
+        #region 報告書出力対象データ取得
+        /// <summary>
+        /// 報告書エクセル出力対象データを取得
+        /// </summary>
+        /// <param name="beforeReportUkeDate">日付FROM</param>
+        /// <param name="afterReportUkeDate">日付TO</param>
+        /// <returns></returns>
+        private DataTable GetReportData(string beforeReportUkeDate, string afterReportUkeDate)
+        {
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                // DBを開く
+                connection.Open();
+
+                // DataSetを作成
+                DataSet dataSet = new DataSet();
+
+                // SQL文作成用
+                StringBuilder getReportDMain = new StringBuilder();
+                getReportDMain.AppendLine($"SELECT KANRI_NO, UKE_DATE, ANK_1, ANK_2, ANK_3 FROM {MyStaticClass.D_MAIN}");
+                getReportDMain.AppendLine(" WHERE UKE_DATE >= @beforeUkeDate AND UKE_DATE <= @afterUkeDate");
+                getReportDMain.AppendLine(" ORDER BY UKE_DATE ASC");
+
+                // パラメータ作成用
+                Dictionary<string, object> parameters = new Dictionary<string, object>()
                     {
                         { "@beforeUkeDate", beforeReportUkeDate },
                         { "@afterUkeDate", afterReportUkeDate }
                     };
 
-                    // D_MAIN_REPORTテーブル取得
-                    _func.FillDataTable(dataSet, connection, null, getReportDMain.ToString(), parameters, D_MAIN + "_REPORT");
+                // D_MAIN_REPORTテーブル取得
+                _myClass.FillDataTable(dataSet, connection, null, getReportDMain.ToString(), parameters, MyStaticClass.D_MAIN + "_REPORT");
 
-                    // 報告書データ出力対象（D_MAIN_REPORTテーブル）取得
-                    reportTable = dataSet.Tables[D_MAIN + "_REPORT"];
-                }
-                #endregion
+                // 報告書データ出力対象（D_MAIN_REPORTテーブル）取得
+                reportTable = dataSet.Tables[MyStaticClass.D_MAIN + "_REPORT"];
 
-                // 警告メッセージを非表示にする
+                return reportTable;
+            }
+        }
+        #endregion
+
+        #region 報告書出力
+        /// <summary>
+        /// 報告書エクセルを出力する
+        /// </summary>
+        /// <param name="beforeUkeDate"></param>
+        /// <param name="afterUkeDate"></param>
+        /// <param name="copyFilePath"></param>
+        private void OutputReport(DateTime beforeUkeDate, DateTime afterUkeDate, string copyFilePath)
+        {
+            // エクセルを使えるように
+            Excel.Application excelApp = new Excel.Application();
+
+            try
+            {
+                // エクセルを画面に表示しない
+                excelApp.Visible = false;
+
+                // 警告メッセージを表示しない
                 excelApp.Application.DisplayAlerts = false;
 
                 // エクセルファイルを開く
@@ -226,7 +285,7 @@ namespace hagaki
                 // 選択範囲による分岐処理
                 if (countData == 1)
                 {
-                    // 範囲が1日なら不要な行削除
+                    // 範囲が1日なら不要な1行削除
                     sexSheet.Rows["9"].Delete(Excel.XlDirection.xlUp);
                     ageSheet.Rows["9"].Delete(Excel.XlDirection.xlUp);
                     jobSheet.Rows["9"].Delete(Excel.XlDirection.xlUp);
@@ -237,8 +296,8 @@ namespace hagaki
                 }
                 else
                 {
-                    // 範囲が3日以上
-                    // 追加する行数
+                    // 範囲が3日以上なら行を追加
+                    // 追加する行数（表示したい行数から既にエクセルに存在する2行を減らす）
                     int insertRowsCount = countData - 2;
 
                     // 各シートで8行目をコピーして挿入
@@ -272,9 +331,9 @@ namespace hagaki
                     {
                         #region *****性別シートのデータ*****
                         // 対象の件数取得
-                        int man = reportTable.Select($"ANK_1 = 1 and UKE_DATE = '{dateList[j]}'").Length;
-                        int woman = reportTable.Select($"ANK_1 = 2 and UKE_DATE = '{dateList[j]}'").Length;
-                        int genderUnknown = reportTable.Select($"ANK_1 = 9 and UKE_DATE = '{dateList[j]}'").Length;
+                        int man = reportTable.Select($"ANK_1 = 1 and UKE_DATE = '{dateList[j].ToString("yyyyMMdd")}'").Length;
+                        int woman = reportTable.Select($"ANK_1 = 2 and UKE_DATE = '{dateList[j].ToString("yyyyMMdd")}'").Length;
+                        int genderUnknown = reportTable.Select($"ANK_1 = 9 and UKE_DATE = '{dateList[j].ToString("yyyyMMdd")}'").Length;
                         int sexSubtotal = man + woman + genderUnknown;
 
                         // 配列にセット
@@ -293,11 +352,11 @@ namespace hagaki
 
                         #region *****年齢シートのデータ*****
                         // 対象の件数取得
-                        int under20 = reportTable.Select($"ANK_2 = 1 and UKE_DATE = '{dateList[j]}'").Length;
-                        int from20to40 = reportTable.Select($"ANK_2 = 2 and UKE_DATE = '{dateList[j]}'").Length;
-                        int from40to60 = reportTable.Select($"ANK_2 = 3 and UKE_DATE = '{dateList[j]}'").Length;
-                        int over60 = reportTable.Select($"ANK_2 = 4 and UKE_DATE = '{dateList[j]}'").Length;
-                        int ageUnknown = reportTable.Select($"ANK_2 = 9 and UKE_DATE = '{dateList[j]}'").Length;
+                        int under20 = reportTable.Select($"ANK_2 = 1 and UKE_DATE = '{dateList[j].ToString("yyyyMMdd")}'").Length;
+                        int from20to40 = reportTable.Select($"ANK_2 = 2 and UKE_DATE = '{dateList[j].ToString("yyyyMMdd")}'").Length;
+                        int from40to60 = reportTable.Select($"ANK_2 = 3 and UKE_DATE = '{dateList[j].ToString("yyyyMMdd")}'").Length;
+                        int over60 = reportTable.Select($"ANK_2 = 4 and UKE_DATE = '{dateList[j].ToString("yyyyMMdd")}'").Length;
+                        int ageUnknown = reportTable.Select($"ANK_2 = 9 and UKE_DATE = '{dateList[j].ToString("yyyyMMdd")}'").Length;
                         int ageSubtotal = under20 + from20to40 + from40to60 + over60 + ageUnknown;
 
                         arr_changeAgeData[j, 0] = dateList[j];
@@ -318,12 +377,12 @@ namespace hagaki
 
                         #region *****職業シートのデータ*****
                         // 対象の件数取得
-                        int selfEmp = reportTable.Select($"ANK_3 = 1 and UKE_DATE = '{dateList[j]}'").Length;
-                        int companyEmp = reportTable.Select($"ANK_3 = 2 and UKE_DATE = '{dateList[j]}'").Length;
-                        int part = reportTable.Select($"ANK_3 = 3 and UKE_DATE = '{dateList[j]}'").Length;
-                        int student = reportTable.Select($"ANK_3 = 4 and UKE_DATE = '{dateList[j]}'").Length;
-                        int others = reportTable.Select($"ANK_3 = 5 and UKE_DATE = '{dateList[j]}'").Length;
-                        int jobUnknown = reportTable.Select($"ANK_3 = 9 and UKE_DATE = '{dateList[j]}'").Length;
+                        int selfEmp = reportTable.Select($"ANK_3 = 1 and UKE_DATE = '{dateList[j].ToString("yyyyMMdd")}'").Length;
+                        int companyEmp = reportTable.Select($"ANK_3 = 2 and UKE_DATE = '{dateList[j].ToString("yyyyMMdd")}'").Length;
+                        int part = reportTable.Select($"ANK_3 = 3 and UKE_DATE = '{dateList[j].ToString("yyyyMMdd")}'").Length;
+                        int student = reportTable.Select($"ANK_3 = 4 and UKE_DATE = '{dateList[j].ToString("yyyyMMdd")}'").Length;
+                        int others = reportTable.Select($"ANK_3 = 5 and UKE_DATE = '{dateList[j].ToString("yyyyMMdd")}'").Length;
+                        int jobUnknown = reportTable.Select($"ANK_3 = 9 and UKE_DATE = '{dateList[j].ToString("yyyyMMdd")}'").Length;
                         int jobSubtotal = selfEmp + companyEmp + part + student + others + jobUnknown;
 
                         arr_changeJobData[j, 0] = dateList[j];
@@ -346,6 +405,7 @@ namespace hagaki
                     }
                     else
                     {
+                        #region *****合計行のデータ*****
                         arr_changeSexData[j, 0] = "合計";
                         arr_changeSexData[j, 1] = totalMan;
                         arr_changeSexData[j, 2] = totalWoman;
@@ -368,6 +428,7 @@ namespace hagaki
                         arr_changeJobData[j, 5] = totalOthers;
                         arr_changeJobData[j, 6] = totalJobUnknown;
                         arr_changeJobData[j, 7] = totalJobSubtotal;
+                        #endregion
                     }
                 }
 
@@ -386,16 +447,10 @@ namespace hagaki
                 // ファイルを保存して閉じる
                 excelBook.Save();
                 excelBook.Close();
-
-                MessageBox.Show("報告書データを出力しました。", "確認");
             }
-            catch (SqlException sqlex)
+            catch (Exception)
             {
-                MessageBox.Show(sqlex.Message, EXCEPTION_ERROR_TITLE);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, EXCEPTION_ERROR_TITLE);
+                throw;
             }
             finally
             {
@@ -406,13 +461,6 @@ namespace hagaki
                 Marshal.ReleaseComObject(excelApp);
                 excelApp = null;
             }
-        }
-        #endregion
-
-        #region 戻る
-        private void BackButton_Click(object sender, EventArgs e)
-        {
-            Close();
         }
         #endregion
     }

@@ -1,164 +1,34 @@
-﻿using System;
+﻿using hagaki.StaticClass;
+using Microsoft.VisualBasic;
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Security.Cryptography;
-using hagaki.StaticClass;
-using Microsoft.VisualBasic;
-using System.Collections;
-using System.Reflection.Emit;
 using System.Windows.Forms;
 
 namespace hagaki
 {
-    internal class My_Function
+    public static class MyStaticClass
     {
         #region 定数
-        private const string D_MAIN = "D_MAIN";                              // メインテーブル
-        private const string D_ERROR = "D_ERROR";                            // エラーテーブル
-        private const string WK_MAIN = "WK_IN_MAIN";                         // 取込データ登録テーブル
-        private const string WK_MAIN_ERROR = "WK_IN_MAIN_ERROR";             // 取込可能エラー登録テーブル
-        private const string WK_MAIN_INSERT_ERROR = "WK_IN_MAIN_INSERT_ERR"; // 取込不可エラー登録テーブル
-        private const string WK_HISO = "WK_HISO";                            // 配送出力データ登録テーブル
-        private Encoding SJIS = Encoding.GetEncoding("Shift_JIS");           // SJISエンコーディングが使えるように
-        #endregion
-
-        #region 列挙体
-        // メインテーブル
-        public enum MainTableColumn
-        {
-            KanriNo,
-            UkeDate,
-            ZipCd,
-            Add1,
-            Add2,
-            Add3,
-            Add4,
-            NameSei,
-            NameMei,
-            TelNo,
-            Ank1,
-            Ank2,
-            Ank3,
-            JyotaiKb,
-            NgOutKb,
-            HisoOutKb
-        }
-
-        // エラーテーブル
-        public enum ErrorTableColumn
-        {
-            KanriNo,
-            ErrCd
-        }
-
-        // 取り込み不可エラー
-        public enum ErrorCd
-        {
-            NoError,
-            LayoutError,
-            IncorrectControlNumber,
-            ImportedControlNumber,
-            DuplicateControlNumber,
-            IncorrectReceptionDate,
-            DBSizeError
-        }
-
-        // 状態区分
-        public enum JyotaiKb
-        {
-            Ok,
-            Ng,
-            Hold,
-            Cancel
-        }
-
-        // NG票出力区分
-        public enum NgOutKb
-        {
-            Un,
-            Done
-        }
-
-        // 配送データ出力区分
-        public enum HisoOutKg
-        {
-            Un,
-            Done
-        }
-        #endregion
-
-        #region 項目数チェック
-        /// <summary>
-        /// 項目数が13項目すべて存在するかチェック
-        /// </summary>
-        /// <param name="checkData">チェックするデータ</param>
-        /// <returns>true:問題なし / false:レイアウトエラー</returns>
-        public bool ItemsNumCheck(string[] checkData)
-        {
-            if (checkData.Length == 13)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        #endregion
-
-        #region 事務局管理番号チェック
-        /// <summary>
-        /// 事務局管理番号が正しい値になっているか
-        /// </summary>
-        /// <param name="checkData">チェックデータ</param>
-        /// <returns>true:問題なし / false:事務局管理番号不備</returns>
-        public bool KanriNoCheck(string checkData)
-        {
-            // 数値か確認（0： 問題なし）
-            if (StCls_Check.CHF_Decimal(checkData) != 0)
-            {
-                return false;
-            }
-
-            // 5文字か確認
-            if (Encoding.Default.GetBytes(checkData).Length != 5)
-            {
-                return false;
-            }
-
-            // 1から始まっているか確認
-            if (checkData[0] != '1')
-            {
-                return false;
-            }
-                
-            return true;
-        }
-        #endregion
-
-        #region 受付日チェック
-        /// <summary>
-        /// 受付日が正しい日付になっているか
-        /// </summary>
-        /// <param name="checkData">チェックデータ</param>
-        /// <returns>true:問題なし / false:受付日が不備</returns>
-        public bool UkeDateCheck(string checkData)
-        {
-            // 半角に変換
-            string ukeDate = StCls_Function.VbStrConv(checkData, (VbStrConv)8);
-
-            // 日付か確認（0：問題なし）
-            if (StCls_Check.CHF_Date(ukeDate) != 0)
-            {
-                return false;
-            }
-
-            return true;
-        }
+        public const string OPERATION_XML = "KensyuSys.xml";                // 設定ファイル名
+        public const string D_MAIN = "D_MAIN";                              // メインテーブル
+        public const string D_ERROR = "D_ERROR";                            // エラーテーブル
+        public const string M_ERROR = "M_ERROR";                            // マスターエラーテーブル
+        public const string M_OUT = "M_OUT";                                // マスター出力テーブル
+        public const string M_JYOTAI = "M_JYOTAI";                          // マスター状態テーブル
+        public const string M_ANK_1 = "M_ANK_1";                            // マスター性別テーブル
+        public const string M_ANK_2 = "M_ANK_2";                            // マスター年齢テーブル
+        public const string M_ANK_3 = "M_ANK_3";                            // マスター職業テーブル
+        public const string WK_MAIN = "WK_IN_MAIN";                         // 取込データ登録テーブル
+        public const string WK_MAIN_ERROR = "WK_IN_MAIN_ERROR";             // 取込可能エラー登録テーブル
+        public const string WK_MAIN_INSERT_ERROR = "WK_IN_MAIN_INSERT_ERR"; // 取込不可エラー登録テーブル
+        public const string WK_HISO = "WK_HISO";                            // 配送出力データ登録テーブル
+        public const string EXCEPTION_ERROR_TITLE = "例外エラー";           // 例外エラータイトル
+        public static Encoding SJIS = Encoding.GetEncoding("Shift_JIS");    // SJISエンコーディングが使えるように
         #endregion
 
         #region エラーチェック
@@ -167,7 +37,7 @@ namespace hagaki
         /// </summary>
         /// <param name="checkData">チェックデータ</param>
         /// <returns>エラーコードの入ったリスト</returns>
-        public List<int> ErrorCheck(string[] checkData)
+        public static List<int> ErrorCheck(string[] checkData)
         {
             // エラーコードリスト
             List<int> errorCdList = new List<int>();
@@ -236,7 +106,7 @@ namespace hagaki
             // 氏名（名）チェック
             int nameMeiCheck = MeiCheck(checkData[(int)MainTableColumn.NameMei]);
 
-            if (nameMeiCheck != 0)
+            if (nameMeiCheck != 0 && nameMeiCheck != 116)
             {
                 errorCdList.Add(nameMeiCheck);
             }
@@ -252,7 +122,7 @@ namespace hagaki
         /// </summary>
         /// <param name="zipCd">郵便番号</param>
         /// <returns>0:問題なし / 100:7バイトではない / 101:数値以外</returns>
-        public int ZipCdCheck(string zipCd)
+        public static int ZipCdCheck(string zipCd)
         {
             // 半角に変換
             string convZipCd = StCls_Function.VbStrConv(zipCd, (VbStrConv)8);
@@ -293,7 +163,7 @@ namespace hagaki
         /// </summary>
         /// <param name="Add1">住所1</param>
         /// <returns>0:問題なし / 102:ブランク / 103:判読不明 / 104:11バイト以上</returns>
-        public int Add1Check(string Add1)
+        public static int Add1Check(string Add1)
         {
             // 全角に変換
             string convAdd1 = StCls_Function.VbStrConv(Add1, (VbStrConv)4);
@@ -326,7 +196,7 @@ namespace hagaki
         /// </summary>
         /// <param name="Add2">住所2</param>
         /// <returns>0:問題なし / 105:ブランク / 106:判読不明 / 107:21バイト以上</returns>
-        public int Add2Check(string Add2)
+        public static int Add2Check(string Add2)
         {
             // 全角に変換
             string convAdd2 = StCls_Function.VbStrConv(Add2, (VbStrConv)4);
@@ -359,7 +229,7 @@ namespace hagaki
         /// </summary>
         /// <param name="Add3">住所3</param>
         /// <returns>0:問題なし / 108:ブランク / 109:判読不明 / 110:41バイト以上</returns>
-        public int Add3Check(string Add3)
+        public static int Add3Check(string Add3)
         {
             // 全角に変換
             string convAdd3 = StCls_Function.VbStrConv(Add3, (VbStrConv)4);
@@ -392,7 +262,7 @@ namespace hagaki
         /// </summary>
         /// <param name="Add4">住所3</param>
         /// <returns>0:問題なし / 111:判読不明 / 112:41バイト以上</returns>
-        public int Add4Check(string Add4)
+        public static int Add4Check(string Add4)
         {
             // 全角に変換
             string convAdd4 = StCls_Function.VbStrConv(Add4, (VbStrConv)4);
@@ -419,7 +289,7 @@ namespace hagaki
         /// </summary>
         /// <param name="nameSei">氏名（姓）</param>
         /// <returns>0:問題なし / 113:ブランク / 114:判読不明 / 115:21バイト以上</returns>
-        public int SeiCheck(string nameSei)
+        public static int SeiCheck(string nameSei)
         {
             // 全角に変換
             string convSei = StCls_Function.VbStrConv(nameSei, (VbStrConv)4);
@@ -452,7 +322,7 @@ namespace hagaki
         /// </summary>
         /// <param name="nameMei">氏名（名）</param>
         /// <returns>0:問題なし / 116:ブランク（問題なし） / 117:判読不明 / 118:21バイト以上</returns>
-        public int MeiCheck(string nameMei)
+        public static int MeiCheck(string nameMei)
         {
             // 全角に変換
             string convMei = StCls_Function.VbStrConv(nameMei, (VbStrConv)4);
@@ -485,7 +355,7 @@ namespace hagaki
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        public void NumTextKeyPress(object sender, KeyPressEventArgs e)
+        public static void NumTextKeyPress(object sender, KeyPressEventArgs e)
         {
             // バックスペースまたはデリートであれば終了してそのまま処理
             if (e.KeyChar == (char)Keys.Back || e.KeyChar == (char)Keys.Delete)
@@ -504,37 +374,6 @@ namespace hagaki
         }
         #endregion
 
-        #region 値の強制変換
-        /// <summary>
-        /// 配列の値をテーブル登録用に変換する
-        /// </summary>
-        /// <param name="dataArray">変換前の配列</param>
-        /// <returns>変換後の配列</returns>
-        public string[] ForcedConversion(string[] dataArray)
-        {
-            dataArray[1] = StCls_Function.VbStrConv(dataArray[(int)MainTableColumn.UkeDate], (VbStrConv)8);                // 半角変換
-            dataArray[2] = StCls_Function.VbStrConv(dataArray[(int)MainTableColumn.ZipCd], (VbStrConv)8).Replace("-", ""); // 半角変換+ハイフン除去
-            dataArray[3] = StCls_Function.VbStrConv(dataArray[(int)MainTableColumn.Add1], (VbStrConv)4);                   // 全角変換
-            dataArray[4] = StCls_Function.VbStrConv(dataArray[(int)MainTableColumn.Add2], (VbStrConv)4);                   // 全角変換
-            dataArray[5] = StCls_Function.VbStrConv(dataArray[(int)MainTableColumn.Add3], (VbStrConv)4);                   // 全角変換
-            dataArray[6] = StCls_Function.VbStrConv(dataArray[(int)MainTableColumn.Add4], (VbStrConv)4);                   // 全角変換
-            dataArray[7] = StCls_Function.VbStrConv(dataArray[(int)MainTableColumn.NameSei], (VbStrConv)4);                // 全角変換
-            dataArray[8] = StCls_Function.VbStrConv(dataArray[(int)MainTableColumn.NameMei], (VbStrConv)4);                // 全角変換
-            dataArray[9] = StCls_Function.VbStrConv(dataArray[(int)MainTableColumn.TelNo], (VbStrConv)8).Replace("-", ""); // 半角変換+ハイフン除去
-            dataArray[10] = (dataArray[(int)MainTableColumn.Ank1] == "1" || dataArray[(int)MainTableColumn.Ank1] == "2")
-                            ? dataArray[(int)MainTableColumn.Ank1] : "9";                                                  // 値が1または2以外であれば9にする
-            dataArray[11] = (dataArray[(int)MainTableColumn.Ank2] == "1" || dataArray[(int)MainTableColumn.Ank2] == "2"
-                            || dataArray[(int)MainTableColumn.Ank2] == "3" || dataArray[(int)MainTableColumn.Ank2] == "4")
-                            ? dataArray[(int)MainTableColumn.Ank2] : "9";                                                  // 値が1、2、3、4以外であれば9にする
-            dataArray[12] = (dataArray[(int)MainTableColumn.Ank3] == "1" || dataArray[(int)MainTableColumn.Ank3] == "2"
-                            || dataArray[(int)MainTableColumn.Ank3] == "3" || dataArray[(int)MainTableColumn.Ank3] == "4"
-                            || dataArray[(int)MainTableColumn.Ank3] == "5")
-                            ? dataArray[(int)MainTableColumn.Ank3] : "9";                                                  // 値が1、2、3、4、5以外であれば9にする
-
-            return dataArray;
-        }
-        #endregion
-
         #region パラメータ作成
         /// <summary>
         /// SQLインジェクション対策用に渡すパラメータを作成する
@@ -542,70 +381,27 @@ namespace hagaki
         /// <param name="dataArray">値の入った配列</param>
         /// <param name="line">タブ区切りの1レコード文字列</param>
         /// <returns>キーと値がセットのパラメータ</returns>
-        public Dictionary<string, object> KeyValuePairs(string[] dataArray, string line = "")
+        public static Dictionary<string, object> KeyValuePairs(string[] dataArray, string line = "")
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>
             {
-                { "@kanriNo", dataArray[(int)My_Function.MainTableColumn.KanriNo] },
-                { "@UkeDate", dataArray[(int)My_Function.MainTableColumn.UkeDate] },
-                { "@ZipCd", dataArray[(int)My_Function.MainTableColumn.ZipCd] },
-                { "@Add1", dataArray[(int)My_Function.MainTableColumn.Add1] },
-                { "@Add2", dataArray[(int)My_Function.MainTableColumn.Add2] },
-                { "@Add3", dataArray[(int)My_Function.MainTableColumn.Add3] },
-                { "@Add4", dataArray[(int)My_Function.MainTableColumn.Add4] },
-                { "@NameSei", dataArray[(int)My_Function.MainTableColumn.NameSei] },
-                { "@NameMei", dataArray[(int)My_Function.MainTableColumn.NameMei] },
-                { "@TelNo", dataArray[(int)My_Function.MainTableColumn.TelNo] },
-                { "@Ank1", dataArray[(int)My_Function.MainTableColumn.Ank1] },
-                { "@Ank2", dataArray[(int)My_Function.MainTableColumn.Ank2] },
-                { "@Ank3", dataArray[(int)My_Function.MainTableColumn.Ank3] },
+                { "@kanriNo", dataArray[(int)MainTableColumn.KanriNo] },
+                { "@UkeDate", dataArray[(int)MainTableColumn.UkeDate] },
+                { "@ZipCd", dataArray[(int)MainTableColumn.ZipCd] },
+                { "@Add1", dataArray[(int)MainTableColumn.Add1] },
+                { "@Add2", dataArray[(int)MainTableColumn.Add2] },
+                { "@Add3", dataArray[(int)MainTableColumn.Add3] },
+                { "@Add4", dataArray[(int)MainTableColumn.Add4] },
+                { "@NameSei", dataArray[(int)MainTableColumn.NameSei] },
+                { "@NameMei", dataArray[(int)MainTableColumn.NameMei] },
+                { "@TelNo", dataArray[(int)MainTableColumn.TelNo] },
+                { "@Ank1", dataArray[(int)MainTableColumn.Ank1] },
+                { "@Ank2", dataArray[(int)MainTableColumn.Ank2] },
+                { "@Ank3", dataArray[(int)MainTableColumn.Ank3] },
                 { "@Line", line },
             };
 
             return parameters;
-        }
-        #endregion
-
-        #region DataSetにDataTable作成
-        /// <summary>
-        /// DataSetにDataTableを作成する
-        /// </summary>
-        /// <param name="dataSet">DataSet</param>
-        /// <param name="connection">SqlConnection</param>
-        /// <param name="transaction">SqlTransaction</param>
-        /// <param name="query">クエリ</param>
-        /// <param name="parameters">パラメータ</param>
-        /// <param name="tableName">テーブル名</param>
-        public void FillDataTable(DataSet dataSet, SqlConnection connection, SqlTransaction transaction, string query, Dictionary<string, object> parameters, string tableName)
-        {
-            using (SqlCommand command = connection.CreateCommand())
-            {
-                command.Transaction = transaction;
-                command.CommandText = query;
-
-                // パラメータを追加
-                if (parameters != null)
-                {
-                    foreach (var param in parameters)
-                    {
-                        command.Parameters.AddWithValue(param.Key, param.Value);
-                    }
-                }
-
-                using (SqlDataAdapter adapter = new SqlDataAdapter(command))
-                {
-                    try
-                    {
-                        // DataTableにデータを取得し、DataSetに追加
-                        adapter.Fill(dataSet, tableName);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Fillでエラー: " + ex.Message);
-                        throw; // 例外を再スロー
-                    }
-                }
-            }
         }
         #endregion
 
@@ -617,7 +413,7 @@ namespace hagaki
         /// <param name="offset">行番号</param>
         /// <param name="err_cd">エラーコードまたは状態</param>
         /// <returns>SQL文</returns>
-        public string MakeInsertSql(string tableName, int offset = 0, int err_cd = (int)ErrorCd.NoError)
+        public static string MakeInsertSql(string tableName, int offset = 0, int err_cd = (int)ErrorCd.NoError)
         {
             // SQL文の生成
             StringBuilder sqlStr = new StringBuilder();
@@ -664,7 +460,7 @@ namespace hagaki
             {
                 sqlStr.AppendLine($"INSERT INTO {WK_MAIN_ERROR}(");
                 sqlStr.AppendLine("KANRI_NO, ERR_CD) VALUES (");
-                sqlStr.AppendLine($"@KanriNo,");
+                sqlStr.AppendLine("@KanriNo,");
                 sqlStr.AppendLine($"{err_cd})");
             }
             #endregion
@@ -701,10 +497,10 @@ namespace hagaki
                 sqlStr.AppendLine("@Ank2,");
                 sqlStr.AppendLine("@Ank3,");
                 sqlStr.AppendLine($"{err_cd},");
-                sqlStr.AppendLine("'0',");
+                sqlStr.AppendLine($"'{(int)NgOutKb.Un}',");
                 sqlStr.AppendLine("'',");
                 sqlStr.AppendLine("'',");
-                sqlStr.AppendLine("'0',");
+                sqlStr.AppendLine($"'{(int)HisoOutKb.Un}',");
                 sqlStr.AppendLine("'',");
                 sqlStr.AppendLine("'',");
                 sqlStr.AppendLine($"'{nowDateTime}',");
@@ -746,37 +542,57 @@ namespace hagaki
         /// アップデートSQL文作成
         /// </summary>
         /// <param name="tableName">テーブル名</param>
-        /// <param name="updateData">更新用データ</param>
+        /// <param name="operations">操作フォーム</param>
         /// <returns>SQL文</returns>
-        public string MakeUpdateSql(string tableName)
+        public static string MakeUpdateSql(string tableName, string operations)
         {
-            // SQL文の生成
-            StringBuilder sqlStr = new StringBuilder();
-
             // 現在の日時を取得
             string nowDateTime = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
 
             // ログインユーザー名取得
             string loginID = StCls_Function.GetUser();
 
+            // SQL文の生成
+            StringBuilder sqlStr = new StringBuilder();
             sqlStr.AppendLine($"UPDATE {tableName} SET");
-            sqlStr.AppendLine($" ZIP_CD = @ZipCd,");
-            sqlStr.AppendLine($" ADD_1 = @Add1,");
-            sqlStr.AppendLine($" ADD_2 = @Add2,");
-            sqlStr.AppendLine($" ADD_3 = @Add3,");
-            sqlStr.AppendLine($" ADD_4 = @Add4,");
-            sqlStr.AppendLine($" NAME_SEI = @NameSei,");
-            sqlStr.AppendLine($" NAME_MEI = @NameMei,");
-            sqlStr.AppendLine($" TEL_NO = @TelNo,");
-            sqlStr.AppendLine($" ANK_1 = @Ank1,");
-            sqlStr.AppendLine($" ANK_2 = @Ank2,");
-            sqlStr.AppendLine($" ANK_3 = @Ank3,");
-            sqlStr.AppendLine($" JYOTAI_KB = @JyotaiKb,");
-            sqlStr.AppendLine($" NG_OUT_KB = @NgOutKb,");
-            sqlStr.AppendLine($" HISO_OUT_KB = @HisoOutKb,");
-            sqlStr.AppendLine($" UPDATE_DATETIME = '{nowDateTime}',");
-            sqlStr.AppendLine($" UPDATE_LOGINID = '{loginID}'");
-            sqlStr.AppendLine($" WHERE KANRI_NO = @KanriNo");
+
+            if (operations == "MAINTENANCE")
+            {
+                sqlStr.AppendLine(" ZIP_CD = @ZipCd,");
+                sqlStr.AppendLine(" ADD_1 = @Add1,");
+                sqlStr.AppendLine(" ADD_2 = @Add2,");
+                sqlStr.AppendLine(" ADD_3 = @Add3,");
+                sqlStr.AppendLine(" ADD_4 = @Add4,");
+                sqlStr.AppendLine(" NAME_SEI = @NameSei,");
+                sqlStr.AppendLine(" NAME_MEI = @NameMei,");
+                sqlStr.AppendLine(" TEL_NO = @TelNo,");
+                sqlStr.AppendLine(" ANK_1 = @Ank1,");
+                sqlStr.AppendLine(" ANK_2 = @Ank2,");
+                sqlStr.AppendLine(" ANK_3 = @Ank3,");
+                sqlStr.AppendLine(" JYOTAI_KB = @JyotaiKb,");
+                sqlStr.AppendLine(" NG_OUT_KB = @NgOutKb,");
+                sqlStr.AppendLine(" HISO_OUT_KB = @HisoOutKb,");
+                sqlStr.AppendLine($" UPDATE_DATETIME = '{nowDateTime}',");
+                sqlStr.AppendLine($" UPDATE_LOGINID = '{loginID}'");
+                sqlStr.AppendLine(" WHERE KANRI_NO = @KanriNo");
+            } else if (operations == "OUT_NG")
+            {
+                sqlStr.AppendLine($" NG_OUT_KB = '{(int)NgOutKb.Done}',");
+                sqlStr.AppendLine(" NG_OUT_DATETIME = '{nowDateTime}',");
+                sqlStr.AppendLine($" NG_OUT_LOGINID = '{loginID}',");
+                sqlStr.AppendLine($" UPDATE_DATETIME = '{nowDateTime}',");
+                sqlStr.AppendLine($" UPDATE_LOGINID = '{loginID}'");
+                sqlStr.AppendLine(" WHERE KANRI_NO = @KanriNo");
+            }
+            else if (operations == "OUT_HISO")
+            {
+                sqlStr.AppendLine($" HISO_OUT_KB = '{(int)HisoOutKb.Done}',");
+                sqlStr.AppendLine($" HISO_OUT_DATETIME = '{nowDateTime}',");
+                sqlStr.AppendLine($" HISO_OUT_LOGINID = '{loginID}',");
+                sqlStr.AppendLine($" UPDATE_DATETIME = '{nowDateTime}',");
+                sqlStr.AppendLine($" UPDATE_LOGINID = '{loginID}'");
+                sqlStr.AppendLine(" WHERE KANRI_NO = @KanriNo");
+            }
 
             return sqlStr.ToString();
         }
@@ -790,7 +606,7 @@ namespace hagaki
         /// <param name="kanriNo">事務局管理番号</param>
         /// <param name="offset">行番号</param>
         /// <returns>SQL文</returns>
-        public string MakeDeleteSql(string tableName, string kanriNo = "", int offset = 0)
+        public static string MakeDeleteSql(string tableName, string kanriNo = "", int offset = 0)
         {
             // SQL文の生成
             StringBuilder sqlStr = new StringBuilder();
@@ -799,7 +615,7 @@ namespace hagaki
 
             if (!string.IsNullOrEmpty(kanriNo))
             {
-                sqlStr.AppendLine($" WHERE KANRI_NO = @KanriNo");
+                sqlStr.AppendLine(" WHERE KANRI_NO = @KanriNo");
             }
             if (offset != 0)
             {
@@ -819,7 +635,7 @@ namespace hagaki
         /// <param name="query">クエリ</param>
         /// <param name="parameters">パラメータ辞書</param>
         /// <returns>true：成功 / false：失敗</returns>
-        public bool Execute(SqlConnection connection, SqlTransaction transaction, string query, Dictionary<string, object> parameters)
+        public static bool Execute(SqlConnection connection, SqlTransaction transaction, string query, Dictionary<string, object> parameters)
         {
             try
             {
@@ -851,7 +667,7 @@ namespace hagaki
         #endregion
 
         #region レコード数取得
-        public int getRecordCount(SqlConnection connection, SqlTransaction transaction, string table, string column, string filter = "")
+        public static int GetRecordCount(SqlConnection connection, SqlTransaction transaction, string table, string column, string filter = "")
         {
             string query = $"SELECT COUNT({column}) FROM {table}";
 
@@ -877,7 +693,7 @@ namespace hagaki
         /// </summary>
         /// <param name="intNum">採番する番号</param>
         /// <returns>空文字または採番番号</returns>
-        public string NumStr(int intNum)
+        public static string NumStr(int intNum)
         {
             return intNum == 0 ? string.Empty : $" ({intNum})";
         }

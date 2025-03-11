@@ -12,7 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static hagaki.My_Function;
+using static hagaki.MyClass;
 
 namespace hagaki
 {
@@ -20,21 +20,14 @@ namespace hagaki
     {
         #region メンバ変数
         private string connectionString = string.Empty;                    // 接続文字列
-        private My_Function _func;                                         // My_Functionを使えるように
+        private MyClass _myClass;                                          // MyClassを使えるように
         private string selectedKanriNo = string.Empty;                     // 現在選択されている事務局管理番号
         private DataTable searchResultData = new DataTable();              // 検索画面で絞り込まれた全データ
         private List<string> searchResultKanriNoList = new List<string>(); // 検索結果の事務局管理番号リスト
-        private int currentPage = 0;                                       // 検索結果のデータの要素番号（+1で現在のページ番号）
-        private int maxPage = 0;                                           // 検索結果のデータの要素数（最大ページ数）
+        private int currentPage = 0;                                       // 現在のページ番号（+ 1で表示上のページ番号）
+        private int maxPage = 0;                                           // 最大ページ数（検索結果のデータの要素数）
         private DataRow rowData;                                           // 選択されたレコード情報
         private DataTable fullErrorCodeData;                               // D_ERRORテーブルに登録されている全エラーデータ
-        #endregion
-
-        #region 定数
-        private const string D_MAIN = "D_MAIN";
-        private const string D_ERROR = "D_ERROR";
-        private const string M_ERROR = "M_ERROR";
-        private const string EXCEPTION_ERROR_TITLE = "例外エラー";
         #endregion
 
         #region コンストラクタ
@@ -58,8 +51,8 @@ namespace hagaki
         {
             try
             {
-                // My_Functionクラスをインスタンス化
-                _func = new My_Function();
+                // MyClassクラスをインスタンス化
+                _myClass = new MyClass();
 
                 // 初期フォーカスを郵便番号欄にする
                 ActiveControl = ZipCdText;
@@ -77,7 +70,7 @@ namespace hagaki
                     }
                 }
 
-                // 最初のページもしくは最後のページを表示する場合のボタン制御
+                // 最初のページもしくは最後のページを表示した場合のボタン制御
                 if (currentPage == 0)
                 {
                     PrevButton.BackColor = SystemColors.ControlDark;
@@ -90,17 +83,25 @@ namespace hagaki
                     NextButton.Cursor = Cursors.Default;
                 }
 
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    // 接続を開く
+                    connection.Open();
+
+                    DataSet dataSet = new DataSet();
+
+                    // 絞り込まれたデータレコード情報を取得
+                    GetSeachResultData(dataSet, connection, searchResultKanriNoList);
+
+                    // D_ERRORテーブルに登録されているエラーコード情報取得
+                    GetFullErrorCode(dataSet, connection);
+                }
+
                 // ページ表示
                 DispPage();
 
-                // 絞り込まれたデータレコード情報を取得
-                GetSeachResultData(searchResultKanriNoList);
-
                 // 選択されている管理番号のレコード情報取得
                 GetCurrentRecord(selectedKanriNo);
-
-                // D_ERRORテーブルに登録されているエラーコード情報取得
-                GetFullErrorCode();
 
                 // 選択したレコード情報表示
                 SetTextBox();
@@ -109,13 +110,13 @@ namespace hagaki
                 GetCurrentErrorCode();
 
                 // 数値のみの入力制御
-                ZipCdText.KeyPress += new KeyPressEventHandler(_func.NumTextKeyPress);
-                TelNoText.KeyPress += new KeyPressEventHandler(_func.NumTextKeyPress);
-                Ank1Text.KeyPress += new KeyPressEventHandler(_func.NumTextKeyPress);
-                Ank2Text.KeyPress += new KeyPressEventHandler(_func.NumTextKeyPress);
-                Ank3Text.KeyPress += new KeyPressEventHandler(_func.NumTextKeyPress);
-                NgOutKbText.KeyPress += new KeyPressEventHandler(_func.NumTextKeyPress);
-                HisoOutKbText.KeyPress += new KeyPressEventHandler(_func.NumTextKeyPress);
+                ZipCdText.KeyPress += new KeyPressEventHandler(MyStaticClass.NumTextKeyPress);
+                TelNoText.KeyPress += new KeyPressEventHandler(MyStaticClass.NumTextKeyPress);
+                Ank1Text.KeyPress += new KeyPressEventHandler(MyStaticClass.NumTextKeyPress);
+                Ank2Text.KeyPress += new KeyPressEventHandler(MyStaticClass.NumTextKeyPress);
+                Ank3Text.KeyPress += new KeyPressEventHandler(MyStaticClass.NumTextKeyPress);
+                NgOutKbText.KeyPress += new KeyPressEventHandler(MyStaticClass.NumTextKeyPress);
+                HisoOutKbText.KeyPress += new KeyPressEventHandler(MyStaticClass.NumTextKeyPress);
 
                 // フォーカス外れたときにエラーチェック
                 ZipCdText.Leave += new EventHandler(LeaveErrorCheck);
@@ -136,9 +137,13 @@ namespace hagaki
                 PrevButton.Click += new EventHandler(MoveRecord);
                 NextButton.Click += new EventHandler(MoveRecord);
             }
+            catch (SqlException sqlex)
+            {
+                MessageBox.Show(sqlex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
+            }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, EXCEPTION_ERROR_TITLE);
+                MessageBox.Show(ex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
             }
         }
         #endregion
@@ -149,23 +154,23 @@ namespace hagaki
             try
             {
                 // 状態区分のチェック状況取得
-                string JyotaiKb = string.Empty;
+                string jyotaiKb = string.Empty;
 
                 if (OK_RadioButton.Checked)
                 {
-                    JyotaiKb = ((int)My_Function.JyotaiKb.Ok).ToString();
+                    jyotaiKb = ((int)JyotaiKb.Ok).ToString();
                 }
                 else if (NG_RadioButton.Checked)
                 {
-                    JyotaiKb = ((int)My_Function.JyotaiKb.Ng).ToString();
+                    jyotaiKb = ((int)JyotaiKb.Ng).ToString();
                 }
                 else if (KEEP_RadioButton.Checked)
                 {
-                    JyotaiKb = ((int)My_Function.JyotaiKb.Hold).ToString();
+                    jyotaiKb = ((int)JyotaiKb.Hold).ToString();
                 }
                 else if (CANCEL_RadioButton.Checked)
                 {
-                    JyotaiKb = ((int)My_Function.JyotaiKb.Cancel).ToString();
+                    jyotaiKb = ((int)JyotaiKb.Cancel).ToString();
                 }
 
                 // 各項目の入力値を配列に格納
@@ -183,12 +188,12 @@ namespace hagaki
                 newDataArray[(int)MainTableColumn.Ank1] = Ank1Text.Text;
                 newDataArray[(int)MainTableColumn.Ank2] = Ank2Text.Text;
                 newDataArray[(int)MainTableColumn.Ank3] = Ank3Text.Text;
-                newDataArray[(int)MainTableColumn.JyotaiKb] = JyotaiKb;
+                newDataArray[(int)MainTableColumn.JyotaiKb] = jyotaiKb;
                 newDataArray[(int)MainTableColumn.NgOutKb] = NgOutKbText.Text;
                 newDataArray[(int)MainTableColumn.HisoOutKb] = HisoOutKbText.Text;
 
                 // エラーコードリスト
-                List<int> errorList = _func.ErrorCheck(newDataArray);
+                List<int> errorList = MyStaticClass.ErrorCheck(newDataArray);
 
                 // エラーコードレベル
                 int errorCdLevel = 0;
@@ -216,12 +221,12 @@ namespace hagaki
                 }
 
                 // エラーレベルによる分岐処理
-                if (errorCdLevel == 2 && JyotaiKb == ((int)My_Function.JyotaiKb.Ok).ToString())
+                if (errorCdLevel == 2 && jyotaiKb == ((int)JyotaiKb.Ok).ToString())
                 {
                     MessageBox.Show("ＯＫにできないエラーが存在しますので、更新できません。", "警告");
                     return;
                 }
-                else if (errorCdLevel == 1 && JyotaiKb == ((int)My_Function.JyotaiKb.Ok).ToString())
+                else if (errorCdLevel == 1 && jyotaiKb == ((int)JyotaiKb.Ok).ToString())
                 {
                     // 確認ダイアログ表示
                     DialogResult result = MessageBox.Show("不備項目がありますが、ＯＫで更新してもよろしいでしょうか？", "確認", MessageBoxButtons.YesNo);
@@ -244,9 +249,9 @@ namespace hagaki
                     }
 
                     // エラーレベル0かつ状態区分がNGであればOKに変更（保留とキャンセルの場合はそのまま）
-                    if (errorCdLevel == 0 && JyotaiKb == ((int)My_Function.JyotaiKb.Ng).ToString())
+                    if (errorCdLevel == 0 && jyotaiKb == ((int)JyotaiKb.Ng).ToString())
                     {
-                        newDataArray[(int)MainTableColumn.JyotaiKb] = "0";
+                        newDataArray[(int)MainTableColumn.JyotaiKb] = ((int)JyotaiKb.Ok).ToString();
                     }
                 }
 
@@ -260,7 +265,7 @@ namespace hagaki
                     {
 
                         // D_ERRORデリートSQL文の生成
-                        string dErrorDeleteSqlStr = _func.MakeDeleteSql(D_ERROR, selectedKanriNo);
+                        string dErrorDeleteSqlStr = MyStaticClass.MakeDeleteSql(MyStaticClass.D_ERROR, selectedKanriNo);
 
                         // パラメータ
                         Dictionary<string, object> kanriNoParameter = new Dictionary<string, object>
@@ -269,7 +274,7 @@ namespace hagaki
                         };
 
                         // D_ERRORデリートSQL文を実行
-                        bool dErrorDeleteExcuteCheck = _func.Execute(connection, transaction, dErrorDeleteSqlStr, kanriNoParameter);
+                        bool dErrorDeleteExcuteCheck = MyStaticClass.Execute(connection, transaction, dErrorDeleteSqlStr, kanriNoParameter);
 
                         if (!dErrorDeleteExcuteCheck)
                         {
@@ -283,10 +288,10 @@ namespace hagaki
                             foreach (int errorCd in errorList)
                             {
                                 // D_ERRORインサートSQL文の生成
-                                string dErrorSqlStr = $"INSERT INTO {D_ERROR}(KANRI_NO, ERR_CD) VALUES (@KanriNo, '{errorCd}')";
+                                string dErrorSqlStr = $"INSERT INTO {MyStaticClass.D_ERROR}(KANRI_NO, ERR_CD) VALUES (@KanriNo, '{errorCd}')";
 
                                 // SQL文を実行
-                                bool dErrorExcuteCheck = _func.Execute(connection, transaction, dErrorSqlStr, kanriNoParameter);
+                                bool dErrorExcuteCheck = MyStaticClass.Execute(connection, transaction, dErrorSqlStr, kanriNoParameter);
 
                                 if (!dErrorExcuteCheck)
                                 {
@@ -296,17 +301,17 @@ namespace hagaki
                             }
                         }
 
-                        // D_MAINアップデートSQL文の作成
-                        string dMainUpdateSql = _func.MakeUpdateSql(D_MAIN);
+                        // D_MAINアップデートSQL文の生成
+                        string dMainUpdateSql = MyStaticClass.MakeUpdateSql(MyStaticClass.D_MAIN, "MAINTENANCE");
 
                         // 項目ごとのパラメータを辞書で管理
-                        Dictionary<string, object> parameters = _func.KeyValuePairs(newDataArray);
+                        Dictionary<string, object> parameters = MyStaticClass.KeyValuePairs(newDataArray);
                         parameters.Add("@JyotaiKb", newDataArray[(int)MainTableColumn.JyotaiKb]);
                         parameters.Add("@NgOutKb", newDataArray[(int)MainTableColumn.NgOutKb]);
                         parameters.Add("@HisoOutKb", newDataArray[(int)MainTableColumn.HisoOutKb]);
 
                         // D_MAINアップデートSQL文を実行
-                        bool dMainUpdateExcuteCheck = _func.Execute(connection, transaction, dMainUpdateSql, parameters);
+                        bool dMainUpdateExcuteCheck = MyStaticClass.Execute(connection, transaction, dMainUpdateSql, parameters);
 
                         if (!dMainUpdateExcuteCheck)
                         {
@@ -317,13 +322,15 @@ namespace hagaki
                         // コミット
                         transaction.Commit();
                     }
+
+                    DataSet dataSet = new DataSet();
+
+                    // 絞り込まれたデータレコード情報を最新に
+                    GetSeachResultData(dataSet, connection, searchResultKanriNoList);
+
+                    // D_ERRORテーブルに登録されているエラーコード情報取得
+                    GetFullErrorCode(dataSet, connection);
                 }
-
-                // 絞り込まれたデータレコード情報を最新に
-                GetSeachResultData(searchResultKanriNoList);
-
-                // D_ERRORテーブルに登録されているエラーコード情報取得
-                GetFullErrorCode();
 
                 // 選択されている管理番号のレコード情報取得
                 GetCurrentRecord(selectedKanriNo);
@@ -338,11 +345,11 @@ namespace hagaki
             }
             catch (SqlException sqlex)
             {
-                MessageBox.Show(sqlex.Message, EXCEPTION_ERROR_TITLE);
+                MessageBox.Show(sqlex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, EXCEPTION_ERROR_TITLE);
+                MessageBox.Show(ex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
             }
         }
         #endregion
@@ -350,7 +357,14 @@ namespace hagaki
         #region 終了
         private void EndButton_Click(object sender, EventArgs e)
         {
-            Close();
+            try
+            {
+                Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
+            }
         }
         #endregion
 
@@ -396,11 +410,8 @@ namespace hagaki
                         break;
                 }
 
-                // 内容変更後、更新せず移動しようとしているかチェック
-                bool changeDataFlag = ChangeDataCheck();
-
-                // 内容変更して更新していなければ確認
-                if (!changeDataFlag)
+                // 内容変更して更新していない場合
+                if (!ChangeDataCheck())
                 {
                     // 確認ダイアログ表示
                     DialogResult result = MessageBox.Show("更新されていません。移動しますが、よろしいでしょうか？", "確認", MessageBoxButtons.YesNo);
@@ -457,7 +468,7 @@ namespace hagaki
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, EXCEPTION_ERROR_TITLE);
+                MessageBox.Show(ex.Message, MyStaticClass.EXCEPTION_ERROR_TITLE);
             }
         }
         #endregion
@@ -467,37 +478,31 @@ namespace hagaki
         /// 管理番号リストからD_MAINテーブルに該当するデータを取得
         /// </summary>
         /// <param name="kanriNoList">絞り込まれたデータの管理番号のみのリスト</param>
-        private void GetSeachResultData(List<string> kanriNoList)
+        private void GetSeachResultData(DataSet dataSet, SqlConnection connection, List<string> kanriNoList)
         {
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            // 検索画面で絞り込まれた管理番号リストの対象レコード取得SQL文の生成
+            StringBuilder query = new StringBuilder();
+            query.AppendLine($"SELECT * FROM {MyStaticClass.D_MAIN} WHERE KANRI_NO = @kanriNo0");
+
+            // パラメータ作成用
+            Dictionary<string, object> parameters = new Dictionary<string, object>()
             {
-                // 接続を開く
-                connection.Open();
+                { "@KanriNo0", $"{searchResultKanriNoList[0]}" }
+            };
 
-                DataSet dataSet = new DataSet();
-
-                // レコードのエラーコード取得SQL文の生成
-                StringBuilder query = new StringBuilder();
-                query.AppendLine($"SELECT * FROM {D_MAIN} WHERE KANRI_NO = @kanriNo0");
-
-                // パラメータ作成用
-                Dictionary<string, object> parameters = new Dictionary<string, object>();
-                parameters.Add("@KanriNo0", $"{searchResultKanriNoList[0]}");
-
-                if (searchResultKanriNoList.Count() > 1)
+            if (searchResultKanriNoList.Count() > 1)
+            {
+                for (int i = 1; i < searchResultKanriNoList.Count(); i++)
                 {
-                    for (int i = 1; i < searchResultKanriNoList.Count(); i++)
-                    {
-                        query.AppendLine($" OR KANRI_NO = @KanriNo{i}");
-                        parameters.Add($"@KanriNo{i}", $"{searchResultKanriNoList[i]}");
-                    }
+                    query.AppendLine($" OR KANRI_NO = @KanriNo{i}");
+                    parameters.Add($"@KanriNo{i}", $"{searchResultKanriNoList[i]}");
                 }
-
-                // 検索結果取得
-                _func.FillDataTable(dataSet, connection, null, query.ToString(), parameters, "SEARCH_DATA");
-
-                searchResultData = dataSet.Tables["SEARCH_DATA"];
             }
+
+            // 検索結果取得
+            _myClass.FillDataTable(dataSet, connection, null, query.ToString(), parameters, "SEARCH_DATA");
+
+            searchResultData = dataSet.Tables["SEARCH_DATA"];
         }
         #endregion
 
@@ -521,29 +526,17 @@ namespace hagaki
         /// <summary>
         /// D_ERRORテーブルに登録されているエラーコード情報取得してデータテーブルにセットする
         /// </summary>
-        private void GetFullErrorCode()
+        private void GetFullErrorCode(DataSet dataSet, SqlConnection connection)
         {
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            {
-                // 接続を開く
-                connection.Open();
+            // レコードのエラーコード取得SQL文の生成
+            string query = $"SELECT {MyStaticClass.D_ERROR}.KANRI_NO, {MyStaticClass.D_ERROR}.ERR_CD, {MyStaticClass.M_ERROR}.ERR_MONGON FROM {MyStaticClass.D_ERROR} " +
+                                    $"INNER JOIN {MyStaticClass.M_ERROR} ON {MyStaticClass.D_ERROR}.ERR_CD = {MyStaticClass.M_ERROR}.ERR_CD " +
+                                    $"ORDER BY {MyStaticClass.D_ERROR}.KANRI_NO ASC";
 
-                DataSet dataSet = new DataSet();
+            // 検索結果取得
+            _myClass.FillDataTable(dataSet, connection, null, query, null, "ErrorCode");
 
-                // レコードのエラーコード取得SQL文の生成
-                string query = $"SELECT {D_ERROR}.KANRI_NO, {D_ERROR}.ERR_CD, {M_ERROR}.ERR_MONGON FROM {D_ERROR} " +
-                                        $"INNER JOIN {M_ERROR} ON {D_ERROR}.ERR_CD = {M_ERROR}.ERR_CD " +
-                                        $"ORDER BY {D_ERROR}.KANRI_NO ASC";
-
-                // 検索結果取得
-                _func.FillDataTable(dataSet, connection, null, query, null, "ErrorCode");
-
-                // DataSetにDataTableが存在すれば、ErrorCodeテーブルを変数にセット
-                if (dataSet.Tables.Count > 0)
-                {
-                    fullErrorCodeData = dataSet.Tables["ErrorCode"];
-                }
-            }
+            fullErrorCodeData = dataSet.Tables["ErrorCode"];
         }
         #endregion
 
@@ -593,16 +586,16 @@ namespace hagaki
             Ank3Text.Text = rowData["ANK_3"].ToString();
             switch (int.Parse(rowData["JYOTAI_KB"].ToString()))
             {
-                case (int)My_Function.JyotaiKb.Ok:
+                case (int)JyotaiKb.Ok:
                     OK_RadioButton.Checked = true;
                     break;
-                case (int)My_Function.JyotaiKb.Ng:
+                case (int)JyotaiKb.Ng:
                     NG_RadioButton.Checked = true;
                     break;
-                case (int)My_Function.JyotaiKb.Hold:
+                case (int)JyotaiKb.Hold:
                     KEEP_RadioButton.Checked = true;
                     break;
-                case (int)My_Function.JyotaiKb.Cancel:
+                case (int)JyotaiKb.Cancel:
                     CANCEL_RadioButton.Checked = true;
                     break;
             }
@@ -695,49 +688,49 @@ namespace hagaki
                     ZipCdText.Text = StCls_Function.VbStrConv(ZipCdText.Text, (VbStrConv)8);
 
                     // エラーチェック
-                    errorCheck = _func.ZipCdCheck(ZipCdText.Text);
+                    errorCheck = MyStaticClass.ZipCdCheck(ZipCdText.Text);
                     error = (errorCheck != 0);
                     break;
                 case "Add1Text":
                     // 全角変換
                     Add1Text.Text = StCls_Function.VbStrConv(Add1Text.Text, (VbStrConv)4);
 
-                    errorCheck = _func.Add1Check(Add1Text.Text);
+                    errorCheck = MyStaticClass.Add1Check(Add1Text.Text);
                     error = (errorCheck == 103 || errorCheck == 104);
                     break;
                 case "Add2Text":
                     // 全角変換
                     Add2Text.Text = StCls_Function.VbStrConv(Add2Text.Text, (VbStrConv)4);
 
-                    errorCheck = _func.Add2Check(Add2Text.Text);
+                    errorCheck = MyStaticClass.Add2Check(Add2Text.Text);
                     error = (errorCheck != 0);
                     break;
                 case "Add3Text":
                     // 全角変換
                     Add3Text.Text = StCls_Function.VbStrConv(Add3Text.Text, (VbStrConv)4);
 
-                    errorCheck = _func.Add3Check(Add3Text.Text);
+                    errorCheck = MyStaticClass.Add3Check(Add3Text.Text);
                     error = (errorCheck != 0);
                     break;
                 case "Add4Text":
                     // 全角変換
                     Add4Text.Text = StCls_Function.VbStrConv(Add4Text.Text, (VbStrConv)4);
 
-                    errorCheck = _func.Add4Check(Add4Text.Text);
+                    errorCheck = MyStaticClass.Add4Check(Add4Text.Text);
                     error = (errorCheck != 0);
                     break;
                 case "SeiText":
                     // 全角変換
                     SeiText.Text = StCls_Function.VbStrConv(SeiText.Text, (VbStrConv)4);
 
-                    errorCheck = _func.SeiCheck(SeiText.Text);
+                    errorCheck = MyStaticClass.SeiCheck(SeiText.Text);
                     error = (errorCheck != 0);
                     break;
                 case "MeiText":
                     // 全角変換
                     MeiText.Text = StCls_Function.VbStrConv(MeiText.Text, (VbStrConv)4);
 
-                    errorCheck = _func.MeiCheck(MeiText.Text);
+                    errorCheck = MyStaticClass.MeiCheck(MeiText.Text);
                     error = (errorCheck == 117 || errorCheck == 118);
                     break;
                 case "TelNoText":
@@ -778,7 +771,7 @@ namespace hagaki
                     break;
             }
 
-            TextBox textBox = this.Controls.Find(outForcus, true).FirstOrDefault() as TextBox;
+            TextBox textBox = Controls.Find(outForcus, true).FirstOrDefault() as TextBox;
 
             // エラーがあれば背景色を赤に変更
             textBox.BackColor = error ? Color.Red : SystemColors.Window;
@@ -793,23 +786,23 @@ namespace hagaki
         private bool ChangeDataCheck()
         {
             // 状態区分のチェック状況取得
-            string JyotaiKb = string.Empty;
+            string jyotaiKb = string.Empty;
 
             if (OK_RadioButton.Checked)
             {
-                JyotaiKb = ((int)My_Function.JyotaiKb.Ok).ToString();
+                jyotaiKb = ((int)JyotaiKb.Ok).ToString();
             }
             else if (NG_RadioButton.Checked)
             {
-                JyotaiKb = ((int)My_Function.JyotaiKb.Ng).ToString();
+                jyotaiKb = ((int)JyotaiKb.Ng).ToString();
             }
             else if (KEEP_RadioButton.Checked)
             {
-                JyotaiKb = ((int)My_Function.JyotaiKb.Hold).ToString();
+                jyotaiKb = ((int)JyotaiKb.Hold).ToString();
             }
             else if (CANCEL_RadioButton.Checked)
             {
-                JyotaiKb = ((int)My_Function.JyotaiKb.Cancel).ToString();
+                jyotaiKb = ((int)JyotaiKb.Cancel).ToString();
             }
 
             // フィールドとデータを比較する配列
@@ -826,26 +819,22 @@ namespace hagaki
                 ("ANK_1", Ank1Text.Text),
                 ("ANK_2", Ank2Text.Text),
                 ("ANK_3", Ank3Text.Text),
-                ("JYOTAI_KB", JyotaiKb),
+                ("JYOTAI_KB", jyotaiKb),
                 ("NG_OUT_KB", NgOutKbText.Text),
                 ("NG_OUT_DATETIME", NgOutDateTimeText.Text),
                 ("HISO_OUT_KB", HisoOutKbText.Text)
             };
-
-            // 変更確認フラグ
-            bool changeCheckflag = true;
 
             // 各フィールドのチェック
             foreach ((string, string) field in fieldsToCheck)
             {
                 if (field.Item2 != rowData[field.Item1].ToString())
                 {
-                    changeCheckflag = false;
-                    break;
+                    return false;
                 }
             }
 
-            return changeCheckflag;
+            return true;
         }
         #endregion
     }
