@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Diagnostics.Eventing.Reader;
 
 namespace hagaki
 {
@@ -43,72 +44,72 @@ namespace hagaki
             List<int> errorCdList = new List<int>();
 
             // --------------------------------------------------------------------------
-            // 郵便番号が数値で7バイトか確認（0：問題なし）
-            int zipCheck = ZipCdCheck(checkData[(int)MainTableColumn.ZipCd]);
+            // 郵便番号が数値で7バイトか確認
+            List<int> zipCheck = ZipCdCheck(checkData[(int)MainTableColumn.ZipCd]);
 
-            if (zipCheck != 0)
+            if (zipCheck.Count != 0)
             {
-                errorCdList.Add(zipCheck);
+                errorCdList.AddRange(zipCheck);
             }
             // --------------------------------------------------------------------------
 
             // --------------------------------------------------------------------------
             // 住所1チェック
-            int address1Check = Add1Check(checkData[(int)MainTableColumn.Add1]);
+            List<int> address1Check = Add1Check(checkData[(int)MainTableColumn.Add1]);
 
-            if (address1Check != 0)
+            if (address1Check.Count != 0)
             {
-                errorCdList.Add(address1Check);
+                errorCdList.AddRange(address1Check);
             }
             // --------------------------------------------------------------------------
 
             // --------------------------------------------------------------------------
             // 住所2チェック
-            int address2Check = Add2Check(checkData[(int)MainTableColumn.Add2]);
+            List<int> address2Check = Add2Check(checkData[(int)MainTableColumn.Add2]);
 
-            if (address2Check != 0)
+            if (address2Check.Count != 0)
             {
-                errorCdList.Add(address2Check);
+                errorCdList.AddRange(address2Check);
             }
             // --------------------------------------------------------------------------
 
             // --------------------------------------------------------------------------
             // 住所3チェック
-            int address3Check = Add3Check(checkData[(int)MainTableColumn.Add3]);
+            List<int> address3Check = Add3Check(checkData[(int)MainTableColumn.Add3]);
 
-            if (address3Check != 0)
+            if (address3Check.Count != 0)
             {
-                errorCdList.Add(address3Check);
+                errorCdList.AddRange(address3Check);
             }
             // --------------------------------------------------------------------------
 
             // --------------------------------------------------------------------------
             // 住所4チェック
-            int address4Check = Add4Check(checkData[(int)MainTableColumn.Add4]);
+            List<int> address4Check = Add4Check(checkData[(int)MainTableColumn.Add4]);
 
-            if (address4Check != 0)
+            if (address4Check.Count != 0)
             {
-                errorCdList.Add(address4Check); // 修正: address4Check を追加すべき
+                errorCdList.AddRange(address4Check);
             }
             // --------------------------------------------------------------------------
 
             // --------------------------------------------------------------------------
             // 氏名（姓）チェック
-            int nameSeiCheck = SeiCheck(checkData[(int)MainTableColumn.NameSei]);
+            List<int> nameSeiCheck = SeiCheck(checkData[(int)MainTableColumn.NameSei]);
 
-            if (nameSeiCheck != 0)
+            if (nameSeiCheck.Count != 0)
             {
-                errorCdList.Add(nameSeiCheck);
+                errorCdList.AddRange(nameSeiCheck);
             }
             // --------------------------------------------------------------------------
 
             // --------------------------------------------------------------------------
             // 氏名（名）チェック
-            int nameMeiCheck = MeiCheck(checkData[(int)MainTableColumn.NameMei]);
+            List<int> nameMeiCheck = MeiCheck(checkData[(int)MainTableColumn.NameMei]);
 
-            if (nameMeiCheck != 0 && nameMeiCheck != 116)
+            if (nameMeiCheck.Count != 0)
             {
-                errorCdList.Add(nameMeiCheck);
+                errorCdList.AddRange(nameMeiCheck);
             }
             // --------------------------------------------------------------------------
 
@@ -121,8 +122,8 @@ namespace hagaki
         /// 郵便番号チェック
         /// </summary>
         /// <param name="zipCd">郵便番号</param>
-        /// <returns>0:問題なし / 100:7バイトではない / 101:数値以外</returns>
-        public static int ZipCdCheck(string zipCd)
+        /// <returns>エラーコードリスト</returns>
+        public static List<int> ZipCdCheck(string zipCd)
         {
             // 半角に変換
             string convZipCd = StCls_Function.VbStrConv(zipCd, (VbStrConv)8);
@@ -133,27 +134,21 @@ namespace hagaki
             // 数値か確認（0：問題なし、1：ブランク、それ以外：エラー）
             long check = StCls_Check.CHF_Decimal(convZipCd);
 
-            if (check == 1)
-            {
-                // ブランクはOK
-                return 0;
-            }
-            else if (check == 0)
-            {
-                // 数値で7バイト以外はエラー
-                if (SJIS.GetByteCount(convZipCd) != 7)
-                {
-                    return 100;
-                }
+            List<int> errorCdList = new List<int>();
 
-                // 数値で7バイトはOK
-                return 0;
+            // 7バイト以外はエラー
+            if (SJIS.GetByteCount(convZipCd) != 7)
+            {
+                errorCdList.Add(100);
             }
-            else
+
+            if (check != 0 && check != 1)
             {
                 // 数値以外はエラー
-                return 101;
+                errorCdList.Add(101);
             }
+
+            return errorCdList;
         }
         #endregion
 
@@ -162,31 +157,35 @@ namespace hagaki
         /// 住所1チェック
         /// </summary>
         /// <param name="Add1">住所1</param>
-        /// <returns>0:問題なし / 102:ブランク / 103:判読不明 / 104:11バイト以上</returns>
-        public static int Add1Check(string Add1)
+        /// <returns>エラーコードリスト</returns>
+        public static List<int> Add1Check(string Add1)
         {
             // 全角に変換
             string convAdd1 = StCls_Function.VbStrConv(Add1, (VbStrConv)4);
 
+            List<int> errorCdList = new List<int>();
+
             // ブランクエラー
             if (string.IsNullOrEmpty(convAdd1))
             {
-                return 102;
+                errorCdList.Add(102);
             }
-
-            // ？を含んでいればエラー
-            if (convAdd1.Contains("？"))
+            else
             {
-                return 103;
+                // ？を含んでいればエラー
+                if (convAdd1.Contains("？"))
+                {
+                    errorCdList.Add(103);
+                }
+
+                // 11バイト以上エラー
+                if (SJIS.GetByteCount(convAdd1) >= 11)
+                {
+                    errorCdList.Add(104);
+                }
             }
 
-            // 11バイト以上エラー
-            if (SJIS.GetByteCount(convAdd1) >= 11)
-            {
-                return 104;
-            }
-
-            return 0;
+            return errorCdList;
         }
         #endregion
 
@@ -195,31 +194,35 @@ namespace hagaki
         /// 住所2チェック
         /// </summary>
         /// <param name="Add2">住所2</param>
-        /// <returns>0:問題なし / 105:ブランク / 106:判読不明 / 107:21バイト以上</returns>
-        public static int Add2Check(string Add2)
+        /// <returns>エラーコードリスト</returns>
+        public static List<int> Add2Check(string Add2)
         {
             // 全角に変換
             string convAdd2 = StCls_Function.VbStrConv(Add2, (VbStrConv)4);
 
+            List<int> errorCdList = new List<int>();
+
             // ブランクエラー
             if (string.IsNullOrEmpty(convAdd2))
             {
-                return 105;
+                errorCdList.Add(105);
             }
-
-            // ？を含んでいればエラー
-            if (convAdd2.Contains("？"))
+            else
             {
-                return 106;
+                // ？を含んでいればエラー
+                if (convAdd2.Contains("？"))
+                {
+                    errorCdList.Add(106);
+                }
+
+                // 21バイト以上エラー
+                if (SJIS.GetByteCount(convAdd2) >= 21)
+                {
+                    errorCdList.Add(107);
+                }
             }
 
-            // 21バイト以上エラー
-            if (SJIS.GetByteCount(convAdd2) >= 21)
-            {
-                return 107;
-            }
-
-            return 0;
+            return errorCdList;
         }
         #endregion
 
@@ -228,31 +231,35 @@ namespace hagaki
         /// 住所3チェック
         /// </summary>
         /// <param name="Add3">住所3</param>
-        /// <returns>0:問題なし / 108:ブランク / 109:判読不明 / 110:41バイト以上</returns>
-        public static int Add3Check(string Add3)
+        /// <returns>エラーコードリスト</returns>
+        public static List<int> Add3Check(string Add3)
         {
             // 全角に変換
             string convAdd3 = StCls_Function.VbStrConv(Add3, (VbStrConv)4);
 
+            List<int> errorCdList = new List<int>();
+
             // ブランクエラー
             if (string.IsNullOrEmpty(convAdd3))
             {
-                return 108;
+                errorCdList.Add(108);
             }
-
-            // ？を含んでいればエラー
-            if (convAdd3.Contains("？"))
+            else
             {
-                return 109;
+                // ？を含んでいればエラー
+                if (convAdd3.Contains("？"))
+                {
+                    errorCdList.Add(109);
+                }
+
+                // 41バイト以上エラー
+                if (SJIS.GetByteCount(convAdd3) >= 41)
+                {
+                    errorCdList.Add(110);
+                }
             }
 
-            // 41バイト以上エラー
-            if (SJIS.GetByteCount(convAdd3) >= 41)
-            {
-                return 110;
-            }
-
-            return 0;
+            return errorCdList;
         }
         #endregion
 
@@ -261,25 +268,27 @@ namespace hagaki
         /// 住所4チェック
         /// </summary>
         /// <param name="Add4">住所3</param>
-        /// <returns>0:問題なし / 111:判読不明 / 112:41バイト以上</returns>
-        public static int Add4Check(string Add4)
+        /// <returns>エラーコードリスト</returns>
+        public static List<int> Add4Check(string Add4)
         {
             // 全角に変換
             string convAdd4 = StCls_Function.VbStrConv(Add4, (VbStrConv)4);
 
+            List<int> errorCdList = new List<int>();
+
             // ？を含んでいればエラー
             if (convAdd4.Contains("？"))
             {
-                return 111;
+                errorCdList.Add(111);
             }
 
             // 41バイト以上エラー
             if (SJIS.GetByteCount(convAdd4) >= 41)
             {
-                return 112;
+                errorCdList.Add(112);
             }
 
-            return 0;
+            return errorCdList;
         }
         #endregion
 
@@ -288,31 +297,34 @@ namespace hagaki
         /// 氏名（姓）チェック
         /// </summary>
         /// <param name="nameSei">氏名（姓）</param>
-        /// <returns>0:問題なし / 113:ブランク / 114:判読不明 / 115:21バイト以上</returns>
-        public static int SeiCheck(string nameSei)
+        /// <returns>エラーコードリスト</returns>
+        public static List<int> SeiCheck(string nameSei)
         {
             // 全角に変換
             string convSei = StCls_Function.VbStrConv(nameSei, (VbStrConv)4);
 
+            List<int> errorCdList = new List<int>();
+
             // ブランクエラー
             if (string.IsNullOrEmpty(convSei))
             {
-                return 113;
+                errorCdList.Add(113);
             }
-
-            // ？を含んでいればエラー
-            if (convSei.Contains("？"))
+            else
             {
-                return 114;
+                // ？を含んでいればエラー
+                if (convSei.Contains("？"))
+                {
+                    errorCdList.Add(114);
+                }
+                // 21バイト以上エラー
+                if (SJIS.GetByteCount(convSei) >= 21)
+                {
+                    errorCdList.Add(115);
+                }
             }
 
-            // 21バイト以上エラー
-            if (SJIS.GetByteCount(convSei) >= 21)
-            {
-                return 115;
-            }
-
-            return 0;
+            return errorCdList;
         }
         #endregion
 
@@ -321,31 +333,26 @@ namespace hagaki
         /// 氏名（名）チェック
         /// </summary>
         /// <param name="nameMei">氏名（名）</param>
-        /// <returns>0:問題なし / 116:ブランク（問題なし） / 117:判読不明 / 118:21バイト以上</returns>
-        public static int MeiCheck(string nameMei)
+        /// <returns>エラーコードリスト</returns>
+        public static List<int> MeiCheck(string nameMei)
         {
             // 全角に変換
             string convMei = StCls_Function.VbStrConv(nameMei, (VbStrConv)4);
 
-            // ブランクエラー
-            if (string.IsNullOrEmpty(convMei))
-            {
-                return 116;
-            }
+            List<int> errorCdList = new List<int>();
 
             // ？を含んでいればエラー
             if (convMei.Contains("？"))
             {
-                return 117;
+                errorCdList.Add(117);
             }
-
             // 21バイト以上エラー
             if (SJIS.GetByteCount(convMei) >= 21)
             {
-                return 118;
+                errorCdList.Add(118);
             }
 
-            return 0;
+            return errorCdList;
         }
         #endregion
 

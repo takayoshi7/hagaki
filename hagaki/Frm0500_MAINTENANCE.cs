@@ -680,7 +680,7 @@ namespace hagaki
 
             // エラーチェック（true：エラーあり、false：エラーなし）
             bool error = false;
-            int errorCheck = 0;
+            List<int> errorCheck = new List<int>();
             switch (outForcus)
             {
                 case "ZipCdText":
@@ -689,49 +689,49 @@ namespace hagaki
 
                     // エラーチェック
                     errorCheck = MyStaticClass.ZipCdCheck(ZipCdText.Text);
-                    error = (errorCheck != 0);
+                    error = (errorCheck.Count != 0);
                     break;
                 case "Add1Text":
                     // 全角変換
                     Add1Text.Text = StCls_Function.VbStrConv(Add1Text.Text, (VbStrConv)4);
 
                     errorCheck = MyStaticClass.Add1Check(Add1Text.Text);
-                    error = (errorCheck == 103 || errorCheck == 104);
+                    error = (errorCheck.Count != 0);
                     break;
                 case "Add2Text":
                     // 全角変換
                     Add2Text.Text = StCls_Function.VbStrConv(Add2Text.Text, (VbStrConv)4);
 
                     errorCheck = MyStaticClass.Add2Check(Add2Text.Text);
-                    error = (errorCheck != 0);
+                    error = (errorCheck.Count != 0);
                     break;
                 case "Add3Text":
                     // 全角変換
                     Add3Text.Text = StCls_Function.VbStrConv(Add3Text.Text, (VbStrConv)4);
 
                     errorCheck = MyStaticClass.Add3Check(Add3Text.Text);
-                    error = (errorCheck != 0);
+                    error = (errorCheck.Count != 0);
                     break;
                 case "Add4Text":
                     // 全角変換
                     Add4Text.Text = StCls_Function.VbStrConv(Add4Text.Text, (VbStrConv)4);
 
                     errorCheck = MyStaticClass.Add4Check(Add4Text.Text);
-                    error = (errorCheck != 0);
+                    error = (errorCheck.Count != 0);
                     break;
                 case "SeiText":
                     // 全角変換
                     SeiText.Text = StCls_Function.VbStrConv(SeiText.Text, (VbStrConv)4);
 
                     errorCheck = MyStaticClass.SeiCheck(SeiText.Text);
-                    error = (errorCheck != 0);
+                    error = (errorCheck.Count != 0);
                     break;
                 case "MeiText":
                     // 全角変換
                     MeiText.Text = StCls_Function.VbStrConv(MeiText.Text, (VbStrConv)4);
 
                     errorCheck = MyStaticClass.MeiCheck(MeiText.Text);
-                    error = (errorCheck == 117 || errorCheck == 118);
+                    error = (errorCheck.Count != 0);
                     break;
                 case "TelNoText":
                     // 半角変換

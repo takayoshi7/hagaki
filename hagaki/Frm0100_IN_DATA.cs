@@ -22,7 +22,6 @@ namespace hagaki
     public partial class Frm0100_IN_DATA : Form
     {
         #region メンバ変数
-        private string userName = string.Empty;         // ユーザー名
         private string selectedFilePath = string.Empty; // 選択したファイルパス
         private string outputFolderPath = string.Empty; // 出力先フォルダパス
         private string connectionString = string.Empty; // 接続文字列
@@ -52,9 +51,6 @@ namespace hagaki
         {
             try
             {
-                // ログインユーザー名取得
-                userName = StCls_Function.GetUser();
-
                 // XMLファイルを読込
                 XElement xEle = XElement.Load(MyStaticClass.OPERATION_XML);
 
@@ -93,7 +89,7 @@ namespace hagaki
             try
             {
                 // ファイル選択（デスクトップをデフォルトディレクトリに設定した）
-                selectedFilePath = StCls_File.FF_FileDialog("", $@"C:\Users\{userName}\Desktop", "", "テキスト文書(*.txt)|*.txt", 1);
+                selectedFilePath = StCls_File.FF_FileDialog("", Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "", "テキストファイル(*.txt)|*.txt", 1);
 
                 // 選択失敗したら終了
                 if (string.IsNullOrEmpty(selectedFilePath))
@@ -177,289 +173,280 @@ namespace hagaki
                     // トランザクション開始（閉じる時、コミットされていなければ自動ロールバック）
                     using (SqlTransaction transaction = connection.BeginTransaction())
                     {
-                        using (SqlCommand command = connection.CreateCommand())
+                        // WKテーブル初期化
+                        InitWK_Table(connection, transaction);
+
+                        // 行番号
+                        int lineNo = 1;
+
+                        // DataSetを作成
+                        DataSet dataSet = new DataSet();
+
+                        // WK_IN_MAINテーブルのカラムのサイズを取得SQL文の生成（DBサイズエラーチェック用）
+                        string getColmunSizeSqlStr = $"SELECT COLUMN_NAME, CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{MyStaticClass.WK_MAIN}'";
+
+                        // データを取得してDataSetに追加
+                        _myClass.FillDataTable(dataSet, connection, transaction, getColmunSizeSqlStr, null, MyStaticClass.WK_MAIN + "_SIZE");
+
+                        // カラムのサイズ用リスト
+                        List<int> sizeList = new List<int>();
+
+                        // 13項目のサイズをリストに入れる
+                        for (int i = 0; i < 13; i++)
                         {
-                            // WKテーブル初期化
-                            InitWK_Table(connection, transaction);
+                            sizeList.Add((int)dataSet.Tables[MyStaticClass.WK_MAIN + "_SIZE"].Rows[i]["CHARACTER_MAXIMUM_LENGTH"]);
+                        }
 
-                            // 行番号
-                            int lineNo = 1;
+                        // D_MAINテーブルのKANRI_NOカラムの値を取得SQL文の生成（DBとの重複チェック用）
+                        string getKanriNoSqlStr = $"SELECT KANRI_NO FROM {MyStaticClass.D_MAIN}";
 
-                            // DataSetを作成
-                            DataSet dataSet = new DataSet();
+                        _myClass.FillDataTable(dataSet, connection, transaction, getKanriNoSqlStr, null, MyStaticClass.D_MAIN);
 
-                            // WK_IN_MAINテーブルのカラムのサイズを取得SQL文の生成（DBサイズエラーチェック用）
-                            string getColmunSizeSqlStr = $"SELECT COLUMN_NAME, CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{MyStaticClass.WK_MAIN}'";
+                        DataTable mainTable = dataSet.Tables[MyStaticClass.D_MAIN];
 
-                            // データを取得してDataSetに追加
-                            _myClass.FillDataTable(dataSet, connection, transaction, getColmunSizeSqlStr, null, MyStaticClass.WK_MAIN + "_SIZE");
-
-                            // カラムのサイズ用リスト
-                            List<int> sizeList = new List<int>();
-
-                            // 13項目のサイズをリストに入れる
-                            for (int i = 0; i < 13; i++)
+                        // Shift-JISエンコーディングを指定してStreamReaderを作成
+                        using (StreamReader sr = new StreamReader(selectedFilePath, Encoding.GetEncoding("shift_jis")))
+                        {
+                            // ファイルの最後まで繰り返し
+                            while (!sr.EndOfStream)
                             {
-                                sizeList.Add((int)dataSet.Tables[MyStaticClass.WK_MAIN + "_SIZE"].Rows[i]["CHARACTER_MAXIMUM_LENGTH"]);
-                            }
+                                // 1レコード取り出し
+                                string line = sr.ReadLine();
 
-                            // D_MAINテーブルのKANRI_NOカラムの値を取得SQL文の生成（DBとの重複チェック用）
-                            string getKanriNoSqlStr = $"SELECT KANRI_NO FROM {MyStaticClass.D_MAIN}";
+                                // タブで区切って配列に入れる
+                                string[] dataArray = line.Split('\t');
 
-                            _myClass.FillDataTable(dataSet, connection, transaction, getKanriNoSqlStr, null, MyStaticClass.D_MAIN);
-
-                            DataTable mainTable = dataSet.Tables[MyStaticClass.D_MAIN];
-
-                            // Shift-JISエンコーディングを指定してStreamReaderを作成
-                            using (StreamReader sr = new StreamReader(selectedFilePath, Encoding.GetEncoding("shift_jis")))
-                            {
-                                // ファイルの最後まで繰り返し
-                                while (!sr.EndOfStream)
+                                // 1レコードのパラメータを辞書で管理
+                                Dictionary<string, object> lineParameters = new Dictionary<string, object>
                                 {
-                                    // 1レコード取り出し
-                                    string line = sr.ReadLine();
+                                    { "@Line", line }
+                                };
 
-                                    // タブで区切って配列に入れる
-                                    string[] dataArray = line.Split('\t');
+                                #region 取り込み不可エラーチェック
+                                #region **********レイアウトエラーチェック**********
+                                // エラーだった場合、他エラーチェックはせずWK_IN_MAIN_INSERT_ERRテーブルに登録
+                                if (!ItemsCountCheck(dataArray))
+                                {
+                                    // SQL文の生成
+                                    string mainInsErrSql = MyStaticClass.MakeInsertSql(MyStaticClass.WK_MAIN_INSERT_ERROR, lineNo, (int)ErrorCd.LayoutError);
 
-                                    // 1レコードのパラメータを辞書で管理
-                                    Dictionary<string, object> lineParameters = new Dictionary<string, object>
+                                    // SQL文を実行
+                                    bool mainInsErrorExcuteCheck = MyStaticClass.Execute(connection, transaction, mainInsErrSql, lineParameters);
+
+                                    // WK_IN_MAIN_INSERT_ERRテーブルに登録できたか
+                                    if (mainInsErrorExcuteCheck)
                                     {
-                                        { "@Line", line }
-                                    };
+                                        // 登録できた場合、次の繰り返し処理へ
+                                        lineNo += 1;
+                                        continue;
+                                    }
+                                    else
+                                    {
+                                        // 登録できなければエラーメッセージを表示して処理終了＆トランザクションロールバック
+                                        MessageBox.Show("WK_IN_MAIN_INSERT_ERRテーブルの登録に失敗しました。", "エラー");
+                                        return;
+                                    }
+                                }
+                                #endregion
 
-                                    #region 取り込み不可エラーチェック
-                                    #region **********レイアウトエラーチェック**********
-                                    // エラーだった場合、他エラーチェックはせずWK_IN_MAIN_INSERT_ERRテーブルに登録
-                                    if (!ItemsCountCheck(dataArray))
+                                // 管理番号
+                                string kanriNo = dataArray[(int)MainTableColumn.KanriNo].ToString();
+                                // 受付日
+                                string ukeDate = dataArray[(int)MainTableColumn.UkeDate].ToString();
+                                // 登録不可エラー番号リスト
+                                List<int> registrationErrorNoList = new List<int>();
+
+                                #region **********事務局管理番号チェック**********
+                                // エラーであればリストに追加
+                                if (!KanriNoCheck(kanriNo))
+                                {
+                                    registrationErrorNoList.Add((int)ErrorCd.IncorrectControlNumber);
+                                }
+                                #endregion
+
+                                #region **********既に取込済み事務局管理番号チェック**********
+                                // 重複していればリストに追加
+                                if (!ImportedKanriNoCheck(mainTable, kanriNo))
+                                {
+                                    registrationErrorNoList.Add((int)ErrorCd.ImportedControlNumber);
+                                }
+                                #endregion
+
+                                #region **********受付日チェック**********
+                                // エラーであればリストに追加
+                                if (!UkeDateCheck(ukeDate))
+                                {
+                                    registrationErrorNoList.Add((int)ErrorCd.IncorrectReceptionDate);
+                                }
+                                #endregion
+
+                                #region **********DBサイズチェック**********
+                                // サイズエラーであればリストに追加
+                                if (!DBSizeCheck(sizeList, dataArray))
+                                {
+                                    registrationErrorNoList.Add((int)ErrorCd.DBSizeError);
+                                }
+                                #endregion
+
+                                // 登録不可エラーがあればWK_IN_MAIN_INSERT_ERRテーブルに登録
+                                if (registrationErrorNoList.Count != 0)
+                                {
+                                    // 昇順に並び替え
+                                    registrationErrorNoList.Sort();
+
+                                    foreach (int errCd in registrationErrorNoList)
                                     {
                                         // SQL文の生成
-                                        string mainInsErrSql = MyStaticClass.MakeInsertSql(MyStaticClass.WK_MAIN_INSERT_ERROR, lineNo, (int)ErrorCd.LayoutError);
+                                        string mainInsErrorSql = MyStaticClass.MakeInsertSql(MyStaticClass.WK_MAIN_INSERT_ERROR, lineNo, errCd);
 
                                         // SQL文を実行
-                                        bool mainInsErrorExcuteCheck = MyStaticClass.Execute(connection, transaction, mainInsErrSql, lineParameters);
+                                        bool mainInsErrorExcuteCheck = MyStaticClass.Execute(connection, transaction, mainInsErrorSql, lineParameters);
 
-                                        // WK_IN_MAIN_INSERT_ERRテーブルに登録できたか
-                                        if (mainInsErrorExcuteCheck)
+                                        // 次の繰り返し処理へ
+                                        if (!mainInsErrorExcuteCheck)
                                         {
-                                            // 登録できた場合、次の繰り返し処理へ
-                                            lineNo += 1;
-                                            continue;
-                                        }
-                                        else
-                                        {
-                                            // 登録できなければエラーメッセージを表示して処理終了＆トランザクションロールバック
                                             MessageBox.Show("WK_IN_MAIN_INSERT_ERRテーブルの登録に失敗しました。", "エラー");
                                             return;
                                         }
                                     }
-                                    #endregion
+                                }
+                                #endregion
+                                #region 取り込み可能エラーチェック
+                                else
+                                {
+                                    // エラーコードによる状態区分
+                                    int jotaiKb = 0;
 
-                                    // 管理番号
-                                    string kanriNo = dataArray[(int)MainTableColumn.KanriNo].ToString();
-                                    // 受付日
-                                    string ukeDate = dataArray[(int)MainTableColumn.UkeDate].ToString();
-                                    // 登録不可エラー番号リスト
-                                    List<int> registrationErrorNoList = new List<int>();
+                                    // 取込不可エラーが無い場合、エラーコードのエラーチェック
+                                    List<int> errorCdList = MyStaticClass.ErrorCheck(dataArray);
 
-                                    #region **********事務局管理番号チェック**********
-                                    // エラーであればリストに追加
-                                    if (!KanriNoCheck(kanriNo))
+                                    //エラーコードがある場合
+                                    if (errorCdList.Count != 0)
                                     {
-                                        registrationErrorNoList.Add((int)ErrorCd.IncorrectControlNumber);
-                                    }
-                                    #endregion
-
-                                    #region **********既に取込済み事務局管理番号チェック**********
-                                    // 重複していればリストに追加
-                                    if (!ImportedKanriNoCheck(mainTable, kanriNo))
-                                    {
-                                        registrationErrorNoList.Add((int)ErrorCd.ImportedControlNumber);
-                                    }
-                                    #endregion
-
-                                    #region **********受付日チェック**********
-                                    // エラーであればリストに追加
-                                    if (!UkeDateCheck(ukeDate))
-                                    {
-                                        registrationErrorNoList.Add((int)ErrorCd.IncorrectReceptionDate);
-                                    }
-                                    #endregion
-
-                                    #region **********DBサイズチェック**********
-                                    // サイズエラーであればリストに追加
-                                    if (!DBSizeCheck(sizeList, dataArray))
-                                    {
-                                        registrationErrorNoList.Add((int)ErrorCd.DBSizeError);
-                                    }
-                                    #endregion
-
-                                    // 登録不可エラーがあればWK_IN_MAIN_INSERT_ERRテーブルに登録
-                                    if (registrationErrorNoList.Count != 0)
-                                    {
-                                        // 昇順に並び替え
-                                        registrationErrorNoList.Sort();
-
-                                        foreach (int errCd in registrationErrorNoList)
+                                        foreach (int errorCd in errorCdList)
                                         {
+                                            // WK_IN_MAIN_ERRORテーブルに登録が必要なエラーコード（エラーレベル1または2）の場合
                                             // SQL文の生成
-                                            string mainInsErrorSql = MyStaticClass.MakeInsertSql(MyStaticClass.WK_MAIN_INSERT_ERROR, lineNo, errCd);
+                                            string mainErrorSql = MyStaticClass.MakeInsertSql(MyStaticClass.WK_MAIN_ERROR, lineNo, errorCd);
+
+                                            // 1レコードのパラメータを辞書で管理
+                                            Dictionary<string, object> kanriNoParameter = new Dictionary<string, object>
+                                            {
+                                                { "@KanriNo", kanriNo }
+                                            };
 
                                             // SQL文を実行
-                                            bool mainInsErrorExcuteCheck = MyStaticClass.Execute(connection, transaction, mainInsErrorSql, lineParameters);
+                                            bool mainErrorExcuteCheck = MyStaticClass.Execute(connection, transaction, mainErrorSql, kanriNoParameter);
 
-                                            // 次の繰り返し処理へ
-                                            if (!mainInsErrorExcuteCheck)
+                                            if (!mainErrorExcuteCheck)
                                             {
-                                                MessageBox.Show("WK_IN_MAIN_INSERT_ERRテーブルの登録に失敗しました。", "エラー");
+                                                MessageBox.Show("WK_IN_MAIN_ERRORテーブルの登録に失敗しました。", "エラー");
                                                 return;
                                             }
-                                        }
-                                    }
-                                    #endregion
-                                    #region 取り込み可能エラーチェック
-                                    else
-                                    {
-                                        // エラーコードによる状態区分
-                                        int jotaiKb = 0;
 
-                                        // 取込不可エラーが無い場合、エラーコードのエラーチェック
-                                        List<int> errorCdList = MyStaticClass.ErrorCheck(dataArray);
-
-                                        //エラーコードがある場合
-                                        if (errorCdList.Count != 0)
-                                        {
-                                            foreach (int errorCd in errorCdList)
+                                            // エラーレベルが2であれば状態区分を1（NG）に
+                                            if (errorCd != 102)
                                             {
-                                                // WK_IN_MAIN_ERRORテーブルに登録が不要なエラーコード（エラーレベル0）の場合
-                                                if (errorCd == 116)
-                                                {
-                                                    continue;
-                                                }
-
-                                                // WK_IN_MAIN_ERRORテーブルに登録が必要なエラーコード（エラーレベル1または2）の場合
-                                                // SQL文の生成
-                                                string mainErrorSql = MyStaticClass.MakeInsertSql(MyStaticClass.WK_MAIN_ERROR, lineNo, errorCd);
-
-                                                // 1レコードのパラメータを辞書で管理
-                                                Dictionary<string, object> kanriNoParameter = new Dictionary<string, object>
-                                                {
-                                                    { "@KanriNo", kanriNo }
-                                                };
-
-                                                // SQL文を実行
-                                                bool mainErrorExcuteCheck = MyStaticClass.Execute(connection, transaction, mainErrorSql, kanriNoParameter);
-
-                                                if (!mainErrorExcuteCheck)
-                                                {
-                                                    MessageBox.Show("WK_IN_MAIN_ERRORテーブルの登録に失敗しました。", "エラー");
-                                                    return;
-                                                }
-
-                                                // エラーレベルが2であれば状態区分を1（NG）に
-                                                if (errorCd != 102)
-                                                {
-                                                    jotaiKb = 1;
-                                                }
+                                                jotaiKb = 1;
                                             }
                                         }
-
-                                        // 値をテーブル登録用に強制変換
-                                        dataArray = ForcedConversion(dataArray);
-
-                                        // 項目ごとのパラメータを辞書で管理
-                                        Dictionary<string, object> parameters = MyStaticClass.KeyValuePairs(dataArray, line);
-
-                                        // WK_IN_MAINテーブルに登録
-                                        // SQL文の生成
-                                        string mainStrSql = MyStaticClass.MakeInsertSql(MyStaticClass.WK_MAIN, lineNo, jotaiKb);
-
-                                        // SQL文を実行
-                                        bool mainExcuteCheck = MyStaticClass.Execute(connection, transaction, mainStrSql, parameters);
-
-                                        if (!mainExcuteCheck)
-                                        {
-                                            MessageBox.Show("WK_IN_MAINテーブルの登録に失敗しました。", "エラー");
-                                            return;
-                                        }
-                                    }
-                                    #endregion
-
-                                    // 番号を足し、次の繰り返し処理へ
-                                    lineNo += 1;
-                                }
-                            }
-
-                            #region **********事務局管理番号ファイル内重複チェック**********
-                            // 重複データがある場合
-                            if (DuplicateKanriNoCheck(dataSet, connection, transaction) > 0)
-                            {
-                                foreach (DataRow row in dataSet.Tables[MyStaticClass.WK_MAIN + "_DUPLI"].Rows)
-                                {
-                                    // 重複データは取込不可エラーに（WK_IN_MAIN_INSERT_ERRORテーブルに登録）
-                                    // インサートSQL文の生成
-                                    string mainInsErrorSqlStr = MyStaticClass.MakeInsertSql(MyStaticClass.WK_MAIN_INSERT_ERROR, (int)row["OFFSET"], (int)ErrorCd.DuplicateControlNumber);
-
-                                    // 1レコードのパラメータを辞書で管理
-                                    Dictionary<string, object> lineParameters = new Dictionary<string, object>
-                                    {
-                                        { "@line", row["LINE_DATA"].ToString() }
-                                    };
-
-                                    // インサートSQL文を実行
-                                    bool mainInsErrorExcuteCheck = MyStaticClass.Execute(connection, transaction, mainInsErrorSqlStr, lineParameters);
-
-                                    if (!mainInsErrorExcuteCheck)
-                                    {
-                                        MessageBox.Show("WK_IN_MAIN_INSERT_ERRテーブルの登録に失敗しました。", "エラー");
-                                        return;
                                     }
 
-                                    // 重複データをWK_IN_MAINテーブルから削除
-                                    // デリートSQL文の生成
-                                    string mainDeleteSqlStr = MyStaticClass.MakeDeleteSql(MyStaticClass.WK_MAIN, row["KANRI_NO"].ToString(), (int)row["OFFSET"]);
+                                    // 値をテーブル登録用に強制変換
+                                    dataArray = ForcedConversion(dataArray);
 
-                                    // 1レコードのパラメータを辞書で管理
-                                    Dictionary<string, object> deleteParameter = new Dictionary<string, object>
+                                    // 項目ごとのパラメータを辞書で管理
+                                    Dictionary<string, object> parameters = MyStaticClass.KeyValuePairs(dataArray, line);
+
+                                    // WK_IN_MAINテーブルに登録
+                                    // SQL文の生成
+                                    string mainStrSql = MyStaticClass.MakeInsertSql(MyStaticClass.WK_MAIN, lineNo, jotaiKb);
+
+                                    // SQL文を実行
+                                    bool mainExcuteCheck = MyStaticClass.Execute(connection, transaction, mainStrSql, parameters);
+
+                                    if (!mainExcuteCheck)
                                     {
-                                        { "@KanriNo", row["KANRI_NO"].ToString() }
-                                    };
-
-                                    // デリートSQL文を実行
-                                    bool mainDeleteExcuteCheck = MyStaticClass.Execute(connection, transaction, mainDeleteSqlStr, deleteParameter);
-
-                                    if (!mainDeleteExcuteCheck)
-                                    {
-                                        MessageBox.Show("WK_IN_MAINテーブルの削除に失敗しました。", "エラー");
+                                        MessageBox.Show("WK_IN_MAINテーブルの登録に失敗しました。", "エラー");
                                         return;
                                     }
                                 }
+                                #endregion
+
+                                // 番号を足し、次の繰り返し処理へ
+                                lineNo += 1;
                             }
-                            #endregion
-
-                            // 件数表示
-                            Total_Count.Text = (lineNo - 1).ToString();
-                            OK_Count.Text = (MyStaticClass.GetRecordCount(connection, transaction, MyStaticClass.WK_MAIN, "JYOTAI_KB", $"JYOTAI_KB = {(int)JyotaiKb.Ok}")).ToString();
-                            NG_Count.Text = (MyStaticClass.GetRecordCount(connection, transaction, MyStaticClass.WK_MAIN, "JYOTAI_KB", $"JYOTAI_KB = {(int)JyotaiKb.Ng}")).ToString();
-                            Layout_Error.Text = (MyStaticClass.GetRecordCount(connection, transaction, MyStaticClass.WK_MAIN_INSERT_ERROR, "ERR_NO", $"ERR_NO = {(int)ErrorCd.LayoutError}")).ToString();
-                            ControlNumber_Error.Text = (MyStaticClass.GetRecordCount(connection, transaction, MyStaticClass.WK_MAIN_INSERT_ERROR, "ERR_NO", $"ERR_NO = {(int)ErrorCd.IncorrectControlNumber}")).ToString();
-                            Imported_Error.Text = (MyStaticClass.GetRecordCount(connection, transaction, MyStaticClass.WK_MAIN_INSERT_ERROR, "ERR_NO", $"ERR_NO = {(int)ErrorCd.ImportedControlNumber}")).ToString();
-                            Duplication_Error.Text = (MyStaticClass.GetRecordCount(connection, transaction, MyStaticClass.WK_MAIN_INSERT_ERROR, "ERR_NO", $"ERR_NO = {(int)ErrorCd.DuplicateControlNumber}")).ToString();
-                            ReceptionDate_Error.Text = (MyStaticClass.GetRecordCount(connection, transaction, MyStaticClass.WK_MAIN_INSERT_ERROR, "ERR_NO", $"ERR_NO = {(int)ErrorCd.IncorrectReceptionDate}")).ToString();
-                            DB_Size_Error.Text = (MyStaticClass.GetRecordCount(connection, transaction, MyStaticClass.WK_MAIN_INSERT_ERROR, "ERR_NO", $"ERR_NO =  {(int)ErrorCd.DBSizeError}")).ToString();
-
-                            // 取り込み不可エラーがある場合
-                            if (MyStaticClass.GetRecordCount(connection, transaction, MyStaticClass.WK_MAIN_INSERT_ERROR, "ERR_NO") > 0)
-                            {
-                                // エラーログファイル作成
-                                MakeErrLogFile(dataSet, connection, transaction);
-
-                                MessageBox.Show("エラーログファイルを作成しました。", "確認");
-                            }
-
-                            // コミット
-                            transaction.Commit();
                         }
+
+                        #region **********事務局管理番号ファイル内重複チェック**********
+                        // 重複データがある場合
+                        if (DuplicateKanriNoCheck(dataSet, connection, transaction) > 0)
+                        {
+                            foreach (DataRow row in dataSet.Tables[MyStaticClass.WK_MAIN + "_DUPLI"].Rows)
+                            {
+                                // 重複データは取込不可エラーに（WK_IN_MAIN_INSERT_ERRORテーブルに登録）
+                                // インサートSQL文の生成
+                                string mainInsErrorSqlStr = MyStaticClass.MakeInsertSql(MyStaticClass.WK_MAIN_INSERT_ERROR, (int)row["OFFSET"], (int)ErrorCd.DuplicateControlNumber);
+
+                                // 1レコードのパラメータを辞書で管理
+                                Dictionary<string, object> lineParameters = new Dictionary<string, object>
+                                {
+                                    { "@line", row["LINE_DATA"].ToString() }
+                                };
+
+                                // インサートSQL文を実行
+                                bool mainInsErrorExcuteCheck = MyStaticClass.Execute(connection, transaction, mainInsErrorSqlStr, lineParameters);
+
+                                if (!mainInsErrorExcuteCheck)
+                                {
+                                    MessageBox.Show("WK_IN_MAIN_INSERT_ERRテーブルの登録に失敗しました。", "エラー");
+                                    return;
+                                }
+
+                                // 重複データをWK_IN_MAINテーブルから削除
+                                // デリートSQL文の生成
+                                string mainDeleteSqlStr = MyStaticClass.MakeDeleteSql(MyStaticClass.WK_MAIN, row["KANRI_NO"].ToString(), (int)row["OFFSET"]);
+
+                                // 1レコードのパラメータを辞書で管理
+                                Dictionary<string, object> deleteParameter = new Dictionary<string, object>
+                                {
+                                    { "@KanriNo", row["KANRI_NO"].ToString() }
+                                };
+
+                                // デリートSQL文を実行
+                                bool mainDeleteExcuteCheck = MyStaticClass.Execute(connection, transaction, mainDeleteSqlStr, deleteParameter);
+
+                                if (!mainDeleteExcuteCheck)
+                                {
+                                    MessageBox.Show("WK_IN_MAINテーブルの削除に失敗しました。", "エラー");
+                                    return;
+                                }
+                            }
+                        }
+                        #endregion
+
+                        // 件数表示
+                        Total_Count.Text = (lineNo - 1).ToString();
+                        OK_Count.Text = (MyStaticClass.GetRecordCount(connection, transaction, MyStaticClass.WK_MAIN, "JYOTAI_KB", $"JYOTAI_KB = {(int)JyotaiKb.Ok}")).ToString();
+                        NG_Count.Text = (MyStaticClass.GetRecordCount(connection, transaction, MyStaticClass.WK_MAIN, "JYOTAI_KB", $"JYOTAI_KB = {(int)JyotaiKb.Ng}")).ToString();
+                        Layout_Error.Text = (MyStaticClass.GetRecordCount(connection, transaction, MyStaticClass.WK_MAIN_INSERT_ERROR, "ERR_NO", $"ERR_NO = {(int)ErrorCd.LayoutError}")).ToString();
+                        ControlNumber_Error.Text = (MyStaticClass.GetRecordCount(connection, transaction, MyStaticClass.WK_MAIN_INSERT_ERROR, "ERR_NO", $"ERR_NO = {(int)ErrorCd.IncorrectControlNumber}")).ToString();
+                        Imported_Error.Text = (MyStaticClass.GetRecordCount(connection, transaction, MyStaticClass.WK_MAIN_INSERT_ERROR, "ERR_NO", $"ERR_NO = {(int)ErrorCd.ImportedControlNumber}")).ToString();
+                        Duplication_Error.Text = (MyStaticClass.GetRecordCount(connection, transaction, MyStaticClass.WK_MAIN_INSERT_ERROR, "ERR_NO", $"ERR_NO = {(int)ErrorCd.DuplicateControlNumber}")).ToString();
+                        ReceptionDate_Error.Text = (MyStaticClass.GetRecordCount(connection, transaction, MyStaticClass.WK_MAIN_INSERT_ERROR, "ERR_NO", $"ERR_NO = {(int)ErrorCd.IncorrectReceptionDate}")).ToString();
+                        DB_Size_Error.Text = (MyStaticClass.GetRecordCount(connection, transaction, MyStaticClass.WK_MAIN_INSERT_ERROR, "ERR_NO", $"ERR_NO =  {(int)ErrorCd.DBSizeError}")).ToString();
+
+                        // 取り込み不可エラーがある場合
+                        if (MyStaticClass.GetRecordCount(connection, transaction, MyStaticClass.WK_MAIN_INSERT_ERROR, "ERR_NO") > 0)
+                        {
+                            // エラーログファイル作成
+                            MakeErrLogFile(dataSet, connection, transaction);
+
+                            MessageBox.Show("エラーログファイルを作成しました。", "確認");
+                        }
+
+                        // コミット
+                        transaction.Commit();
                     }
                 }
 
@@ -749,7 +736,7 @@ namespace hagaki
             // 郵便番号からアンケート（職業）までのサイズチェック
             for (int i = 2; i <= 12; i++)
             {
-                if (sizeList[i] < dataArray[i].Length)
+                if (sizeList[i] < MyStaticClass.SJIS.GetByteCount(dataArray[i]))
                 {
                     return false;
                 }
