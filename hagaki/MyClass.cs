@@ -21,39 +21,34 @@ namespace hagaki
         /// DataSetにDataTableを作成する
         /// </summary>
         /// <param name="dataSet">DataSet</param>
-        /// <param name="connection">SqlConnection</param>
-        /// <param name="transaction">SqlTransaction</param>
-        /// <param name="query">クエリ</param>
+        /// <param name="command">SqlCommand</param>
         /// <param name="parameters">パラメータ</param>
         /// <param name="tableName">テーブル名</param>
-        public void FillDataTable(DataSet dataSet, SqlConnection connection, SqlTransaction transaction, string query, Dictionary<string, object> parameters, string tableName)
+        public void FillDataTable(DataSet dataSet, SqlCommand command, Dictionary<string, object> parameters, string tableName)
         {
-            using (SqlCommand command = connection.CreateCommand())
+            // パラメータをクリア
+            command.Parameters.Clear();
+
+            // パラメータを追加
+            if (parameters != null)
             {
-                command.Transaction = transaction;
-                command.CommandText = query;
-
-                // パラメータを追加
-                if (parameters != null)
+                foreach (var param in parameters)
                 {
-                    foreach (var param in parameters)
-                    {
-                        command.Parameters.AddWithValue(param.Key, param.Value);
-                    }
+                    command.Parameters.AddWithValue(param.Key, param.Value);
                 }
+            }
 
-                using (SqlDataAdapter adapter = new SqlDataAdapter(command))
+            using (SqlDataAdapter adapter = new SqlDataAdapter(command))
+            {
+                try
                 {
-                    try
-                    {
-                        // DataTableにデータを取得し、DataSetに追加
-                        adapter.Fill(dataSet, tableName);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Fillでエラー: " + ex.Message);
-                        throw; // 例外を再スロー
-                    }
+                    // DataTableにデータを取得し、DataSetに追加
+                    adapter.Fill(dataSet, tableName);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Fillでエラー: " + ex.Message);
+                    throw; // 例外を再スロー
                 }
             }
         }

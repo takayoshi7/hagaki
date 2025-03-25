@@ -1,5 +1,6 @@
 ﻿using hagaki.StaticClass;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -26,7 +27,7 @@ namespace hagaki
         #endregion
 
         #region 定数
-        private const string OUT_HISO_PATH_NODE = "DIR/OUT_HISO_FLDPATH"; // ノード
+        private const string OUT_HISO_PATH_NODE = "DIR/OUT_HISO_FLDPATH"; // 配送データ出力先ノード
         #endregion
 
         #region コンストラクタ
@@ -112,6 +113,9 @@ namespace hagaki
         {
             try
             {
+                // マウスカーソルを砂時計にする
+                Cursor = Cursors.WaitCursor;
+
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
                     // 接続を開く
@@ -120,97 +124,107 @@ namespace hagaki
                     // トランザクション開始
                     using (SqlTransaction transaction = connection.BeginTransaction())
                     {
-                        // WK_HISOデリートSQL文の生成
-                        string wkHisoDeleteSql = MyStaticClass.MakeDeleteSql(MyStaticClass.WK_HISO);
-
-                        // WK_HISOデリートSQL文を実行
-                        bool wkHisoDeleteCheck = MyStaticClass.Execute(connection, transaction, wkHisoDeleteSql, null);
-                        if (!wkHisoDeleteCheck)
+                        using (SqlCommand command = connection.CreateCommand())
                         {
-                            MessageBox.Show("WK_HISOテーブルの初期化に失敗しました。", "エラー");
-                            return;
-                        }
+                            command.Transaction = transaction;
 
-                        // DataSetを作成
-                        DataSet dataSet = new DataSet();
+                            // WK_HISOデリートSQL文の生成
+                            command.CommandText = MyStaticClass.MakeDeleteSql(MyStaticClass.WK_HISO); ;
 
-                        // D_MAINテーブルの配送データ出力対象データを取得SQL文の生成
-                        StringBuilder getHisoDMainSqlStr = new StringBuilder();
-                        getHisoDMainSqlStr.AppendLine("SELECT");
-                        getHisoDMainSqlStr.AppendLine(" KANRI_NO,");
-                        getHisoDMainSqlStr.AppendLine(" ZIP_CD,");
-                        getHisoDMainSqlStr.AppendLine(" ADD_1,");
-                        getHisoDMainSqlStr.AppendLine(" ADD_2,");
-                        getHisoDMainSqlStr.AppendLine(" ADD_3,");
-                        getHisoDMainSqlStr.AppendLine(" ADD_4,");
-                        getHisoDMainSqlStr.AppendLine(" NAME_SEI,");
-                        getHisoDMainSqlStr.AppendLine(" NAME_MEI,");
-                        getHisoDMainSqlStr.AppendLine(" JYOTAI_KB");
-                        getHisoDMainSqlStr.AppendLine(" HISO_OUT_KB");
-                        getHisoDMainSqlStr.AppendLine($" FROM {MyStaticClass.D_MAIN}");
-                        getHisoDMainSqlStr.AppendLine($" WHERE HISO_OUT_KB = '{(int)HisoOutKb.Un}' AND JYOTAI_KB = '{(int)JyotaiKb.Ok}'");
-                        getHisoDMainSqlStr.AppendLine(" ORDER BY KANRI_NO ASC");
-
-                        // データを取得してDataSetに追加
-                        _myClass.FillDataTable(dataSet, connection, transaction, getHisoDMainSqlStr.ToString(), null, MyStaticClass.D_MAIN + "_HISO");
-
-                        // D_MAIN_HISOテーブル取得
-                        noOutHisoTable = dataSet.Tables[MyStaticClass.D_MAIN + "_HISO"];
-
-                        // 事務局管理番号だけのリスト作成
-                        foreach (DataRow record in noOutHisoTable.Rows)
-                        {
-                            hisoKanriNoList.Add(record["KANRI_NO"].ToString());
-                        }
-
-                        // 重複削除して昇順に並び替え
-                        hisoKanriNoList = hisoKanriNoList.Distinct().OrderBy(x => x).ToList();
-
-                        // 件数表示
-                        HisoCountLabel.Text = noOutHisoTable.Rows.Count.ToString();
-
-                        // 件数が0件以上であれば
-                        if (int.Parse(HisoCountLabel.Text) > 0)
-                        {
-                            // WK_HISOテーブルに登録
-                            foreach (DataRow hisoOutRow in noOutHisoTable.Rows)
+                            // WK_HISOデリートSQL文を実行
+                            bool wkHisoDeleteCheck = MyStaticClass.Execute(command, null);
+                            if (!wkHisoDeleteCheck)
                             {
-                                // SQL文の生成
-                                string hisoStrSql = MyStaticClass.MakeInsertSql(MyStaticClass.WK_HISO);
-
-                                // パラメータ
-                                Dictionary<string, object> parameters = new Dictionary<string, object>
-                                {
-                                    { "@KanriNo", hisoOutRow["KANRI_NO"] },
-                                    { "@ZipCd", hisoOutRow["ZIP_CD"] },
-                                    { "@Add1", hisoOutRow["ADD_1"] },
-                                    { "@Add2", hisoOutRow["ADD_2"] },
-                                    { "@Add3", hisoOutRow["ADD_3"] },
-                                    { "@Add4", hisoOutRow["ADD_4"] },
-                                    { "@NameSei", hisoOutRow["NAME_SEI"] },
-                                    { "@NameMei", hisoOutRow["NAME_MEI"] }
-                                };
-
-                                // SQL文を実行
-                                bool hisoExecuteCheck = MyStaticClass.Execute(connection, transaction, hisoStrSql, parameters);
-
-                                if (!hisoExecuteCheck)
-                                {
-                                    MessageBox.Show("WK_HISOテーブルの登録に失敗しました。", "エラー");
-                                    return;
-                                }
+                                MessageBox.Show("WK_HISOテーブルの初期化に失敗しました。", "エラー");
+                                return;
                             }
 
-                            // 出力ボタン活性化
-                            OutputButton.Enabled = true;
-                            OutputButton.BackColor = SystemColors.GradientActiveCaption;
-                            OutputButton.Cursor = Cursors.Hand;
+                            // DataSetを作成
+                            DataSet dataSet = new DataSet();
+
+                            // D_MAINテーブルの配送データ出力対象データを取得SQL文の生成
+                            StringBuilder getHisoDMainSqlStr = new StringBuilder();
+                            getHisoDMainSqlStr.AppendLine("SELECT");
+                            getHisoDMainSqlStr.AppendLine(" KANRI_NO,");
+                            getHisoDMainSqlStr.AppendLine(" ZIP_CD,");
+                            getHisoDMainSqlStr.AppendLine(" ADD_1,");
+                            getHisoDMainSqlStr.AppendLine(" ADD_2,");
+                            getHisoDMainSqlStr.AppendLine(" ADD_3,");
+                            getHisoDMainSqlStr.AppendLine(" ADD_4,");
+                            getHisoDMainSqlStr.AppendLine(" NAME_SEI,");
+                            getHisoDMainSqlStr.AppendLine(" NAME_MEI,");
+                            getHisoDMainSqlStr.AppendLine(" JYOTAI_KB");
+                            getHisoDMainSqlStr.AppendLine(" HISO_OUT_KB");
+                            getHisoDMainSqlStr.AppendLine($" FROM {MyStaticClass.D_MAIN}");
+                            getHisoDMainSqlStr.AppendLine($" WHERE HISO_OUT_KB = '{(int)HisoOutKb.Un}' AND JYOTAI_KB = '{(int)JyotaiKb.Ok}'");
+                            getHisoDMainSqlStr.AppendLine(" ORDER BY KANRI_NO ASC");
+
+                            command.CommandText = getHisoDMainSqlStr.ToString();
+
+                            // データを取得してDataSetに追加
+                            _myClass.FillDataTable(dataSet, command, null, MyStaticClass.D_MAIN + "_HISO");
+
+                            // D_MAIN_HISOテーブル取得
+                            noOutHisoTable = dataSet.Tables[MyStaticClass.D_MAIN + "_HISO"];
+
+                            // 事務局管理番号だけのリスト作成
+                            foreach (DataRow record in noOutHisoTable.Rows)
+                            {
+                                hisoKanriNoList.Add(record["KANRI_NO"].ToString());
+                            }
+
+                            // 重複削除して昇順に並び替え
+                            hisoKanriNoList = hisoKanriNoList.Distinct().OrderBy(x => x).ToList();
+
+                            // 件数表示
+                            HisoCountLabel.Text = noOutHisoTable.Rows.Count.ToString();
+
+                            // 件数が0件以上であれば
+                            if (int.Parse(HisoCountLabel.Text) > 0)
+                            {
+                                // WK_HISOテーブルに登録
+                                foreach (DataRow hisoOutRow in noOutHisoTable.Rows)
+                                {
+                                    // SQL文の生成
+                                    command.CommandText = MyStaticClass.MakeInsertSql(MyStaticClass.WK_HISO);
+
+                                    // パラメータ
+                                    Dictionary<string, object> parameters = new Dictionary<string, object>
+                                    {
+                                        { "@KanriNo", hisoOutRow["KANRI_NO"] },
+                                        { "@ZipCd", hisoOutRow["ZIP_CD"] },
+                                        { "@Add1", hisoOutRow["ADD_1"] },
+                                        { "@Add2", hisoOutRow["ADD_2"] },
+                                        { "@Add3", hisoOutRow["ADD_3"] },
+                                        { "@Add4", hisoOutRow["ADD_4"] },
+                                        { "@NameSei", hisoOutRow["NAME_SEI"] },
+                                        { "@NameMei", hisoOutRow["NAME_MEI"] }
+                                    };
+
+                                    // SQL文を実行
+                                    bool hisoExecuteCheck = MyStaticClass.Execute(command, parameters);
+
+                                    if (!hisoExecuteCheck)
+                                    {
+                                        MessageBox.Show("WK_HISOテーブルの登録に失敗しました。", "エラー");
+                                        return;
+                                    }
+                                }
+
+                                // 出力ボタン活性化
+                                OutputButton.Enabled = true;
+                                OutputButton.BackColor = SystemColors.GradientActiveCaption;
+                                OutputButton.Cursor = Cursors.Hand;
+                            }
                         }
 
                         // コミット
                         transaction.Commit();
                     }
                 }
+
+                // マウスカーソルを元に戻す
+                Cursor = Cursors.Default;
             }
             catch (SqlException sqlex)
             {
@@ -254,16 +268,21 @@ namespace hagaki
                     // トランザクション開始
                     using (SqlTransaction transaction = connection.BeginTransaction())
                     {
-                        // プログレスダイアログを作成し、進捗管理する処理とTupleを使ってオブジェクトを渡す
-                        ProgressDialog pd = new ProgressDialog(new DoWorkEventHandler(ProgressDialog_DoWork), new Tuple<SqlConnection, SqlTransaction>(connection, transaction));
-
-                        // ダイアログの結果を確認して処理
-                        DialogResult result = pd.ShowDialog();
-
-                        // キャンセルまたはエラーの場合
-                        if (result == DialogResult.Cancel || result == DialogResult.Abort)
+                        using (SqlCommand command = connection.CreateCommand())
                         {
-                            return;
+                            command.Transaction = transaction;
+
+                            // プログレスダイアログを作成し、進捗管理する処理とTupleを使ってオブジェクトを渡す
+                            ProgressDialog pd = new ProgressDialog(new DoWorkEventHandler(ProgressDialog_DoWork), command);
+
+                            // ダイアログの結果を確認して処理
+                            DialogResult result = pd.ShowDialog();
+
+                            // キャンセルまたはエラーの場合
+                            if (result == DialogResult.Cancel || result == DialogResult.Abort)
+                            {
+                                return;
+                            }
                         }
 
                         // コミット
@@ -399,10 +418,15 @@ namespace hagaki
             // CSVファイルを作成
             using (StreamWriter sw = new StreamWriter(outHisoFilePath, false, MyStaticClass.SJIS))
             {
-                // Tupleを使ってSqlConnectionとSqlTransactionを取得
-                Tuple<SqlConnection, SqlTransaction> tuple = (Tuple<SqlConnection, SqlTransaction>)e.Argument;
-                SqlConnection connection = tuple.Item1;
-                SqlTransaction transaction = tuple.Item2;
+                // SqlCommandを取得
+                SqlCommand command = e.Argument as SqlCommand;
+
+                // SqlCommandがnullの場合
+                if (command == null)
+                {
+                    e.Result = new Exception("SqlCommandがNULLです。");
+                    return;
+                }
 
                 foreach (DataRow hisoRow in noOutHisoTable.Rows)
                 {
@@ -414,16 +438,16 @@ namespace hagaki
 
                     #region D_MAINを更新
                     // D_MAINアップデートSQL文の作成
-                    string dMainHisoOutUpdateSql = MyStaticClass.MakeUpdateSql(MyStaticClass.D_MAIN, "OUT_HISO"); ;
+                    command.CommandText = MyStaticClass.MakeUpdateSql(MyStaticClass.D_MAIN, "OUT_HISO"); ;
 
                     // パラメータ
                     Dictionary<string, object> kanriNoParameter = new Dictionary<string, object>
-                        {
-                            { "@KanriNo", hisoRow["KANRI_NO"].ToString() }
-                        };
+                    {
+                        { "@KanriNo", hisoRow["KANRI_NO"].ToString() }
+                    };
 
                     // D_MAINアップデートSQL文を実行
-                    bool dMainOutExcuteCheck = MyStaticClass.Execute(connection, transaction, dMainHisoOutUpdateSql.ToString(), kanriNoParameter);
+                    bool dMainOutExcuteCheck = MyStaticClass.Execute(command, kanriNoParameter);
 
                     if (!dMainOutExcuteCheck)
                     {
@@ -456,10 +480,10 @@ namespace hagaki
                 }
 
                 // WK_HISOデリートSQL文の生成
-                string wkHisoDeleteSql = MyStaticClass.MakeDeleteSql(MyStaticClass.WK_HISO);
+                command.CommandText = MyStaticClass.MakeDeleteSql(MyStaticClass.WK_HISO);
 
                 // WK_HISOデリートSQL文を実行
-                bool wkHisoDeleteCheck = MyStaticClass.Execute(connection, transaction, wkHisoDeleteSql, null);
+                bool wkHisoDeleteCheck = MyStaticClass.Execute(command, null);
                 if (!wkHisoDeleteCheck)
                 {
                     e.Result = new Exception("WK_HISOテーブルの初期化に失敗しました。");

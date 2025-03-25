@@ -1,5 +1,6 @@
 ﻿using hagaki.StaticClass;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -26,7 +27,7 @@ namespace hagaki
         #endregion
 
         #region 定数
-        private const string OUT_REPORT_PATH_NODE = "DIR/OUT_REPORT_FLDPATH";      // ノード
+        private const string OUT_REPORT_PATH_NODE = "DIR/OUT_REPORT_FLDPATH";      // 報告書データ出力先ノード
         private const string HINA_REPORT_FILE_PATH = "アンケート報告書_雛型.xlsx"; // 雛型になる報告書ファイルのパス
         #endregion
 
@@ -110,9 +111,6 @@ namespace hagaki
         {
             try
             {
-                // マウスカーソルを砂時計にする
-                Cursor = Cursors.WaitCursor;
-
                 // 出力する受付日の範囲を取得
                 DateTime beforeUkeDate = BeforeUkeDate.Value;
                 DateTime afterUkeDate = AfterUkeDate.Value;
@@ -143,6 +141,9 @@ namespace hagaki
                     MessageBox.Show("雛型エクセルファイルが見つかりませんでした。", "エラー");
                     return;
                 }
+
+                // マウスカーソルを砂時計にする
+                Cursor = Cursors.WaitCursor;
 
                 // 出力先フォルダがない場合フォルダを作成する
                 if (!Directory.Exists(outReportFolderPath))
@@ -209,35 +210,39 @@ namespace hagaki
         /// <returns></returns>
         private DataTable GetReportData(string beforeReportUkeDate, string afterReportUkeDate)
         {
+            // DataSetを作成
+            DataSet dataSet = new DataSet();
+
+            // SQL文作成用
+            StringBuilder getReportDMain = new StringBuilder();
+            getReportDMain.AppendLine($"SELECT KANRI_NO, UKE_DATE, ANK_1, ANK_2, ANK_3 FROM {MyStaticClass.D_MAIN}");
+            getReportDMain.AppendLine(" WHERE UKE_DATE >= @beforeUkeDate AND UKE_DATE <= @afterUkeDate");
+            getReportDMain.AppendLine(" ORDER BY UKE_DATE ASC");
+
+            // パラメータ作成用
+            Dictionary<string, object> parameters = new Dictionary<string, object>()
+            {
+                { "@beforeUkeDate", beforeReportUkeDate },
+                { "@afterUkeDate", afterReportUkeDate }
+            };
+
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
-                // DBを開く
                 connection.Open();
 
-                // DataSetを作成
-                DataSet dataSet = new DataSet();
+                using (SqlCommand command = connection.CreateCommand())
+                {
+                    command.CommandText = getReportDMain.ToString();
 
-                // SQL文作成用
-                StringBuilder getReportDMain = new StringBuilder();
-                getReportDMain.AppendLine($"SELECT KANRI_NO, UKE_DATE, ANK_1, ANK_2, ANK_3 FROM {MyStaticClass.D_MAIN}");
-                getReportDMain.AppendLine(" WHERE UKE_DATE >= @beforeUkeDate AND UKE_DATE <= @afterUkeDate");
-                getReportDMain.AppendLine(" ORDER BY UKE_DATE ASC");
-
-                // パラメータ作成用
-                Dictionary<string, object> parameters = new Dictionary<string, object>()
-                    {
-                        { "@beforeUkeDate", beforeReportUkeDate },
-                        { "@afterUkeDate", afterReportUkeDate }
-                    };
-
-                // D_MAIN_REPORTテーブル取得
-                _myClass.FillDataTable(dataSet, connection, null, getReportDMain.ToString(), parameters, MyStaticClass.D_MAIN + "_REPORT");
-
-                // 報告書データ出力対象（D_MAIN_REPORTテーブル）取得
-                reportTable = dataSet.Tables[MyStaticClass.D_MAIN + "_REPORT"];
-
-                return reportTable;
+                    // D_MAIN_REPORTテーブル取得
+                    _myClass.FillDataTable(dataSet, command, parameters, MyStaticClass.D_MAIN + "_REPORT");
+                }
             }
+
+            // 報告書データ出力対象（D_MAIN_REPORTテーブル）取得
+            reportTable = dataSet.Tables[MyStaticClass.D_MAIN + "_REPORT"];
+
+            return reportTable;
         }
         #endregion
 
@@ -432,15 +437,15 @@ namespace hagaki
                     }
                 }
 
-                // 性別シートの貼り付け範囲指定
+                // 性別シートの貼り付け範囲指定して貼り付け
                 Excel.Range sexRange = sexSheet.Range[sexSheet.Cells[8, 2], sexSheet.Cells[countData + 8, 6]];
                 sexRange.Value = arr_changeSexData;
 
-                // 年齢シートの貼り付け範囲指定
+                // 年齢シートの貼り付け範囲指定して貼り付け
                 Excel.Range ageRange = ageSheet.Range[ageSheet.Cells[8, 2], ageSheet.Cells[countData + 8, 8]];
                 ageRange.Value = arr_changeAgeData;
 
-                // 職業シートの貼り付け範囲指定
+                // 職業シートの貼り付け範囲指定して貼り付け
                 Excel.Range jobRange = jobSheet.Range[jobSheet.Cells[8, 2], jobSheet.Cells[countData + 8, 9]];
                 jobRange.Value = arr_changeJobData;
 
@@ -454,7 +459,7 @@ namespace hagaki
             }
             finally
             {
-                // ファイルクローズ
+                // エクセルアプリケーションを終了
                 excelApp.Quit();
 
                 // COMオブジェクト開放

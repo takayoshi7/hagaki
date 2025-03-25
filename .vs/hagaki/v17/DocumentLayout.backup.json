@@ -3,16 +3,8 @@
   "WorkspaceRootPath": "C:\\Users\\takahashi\\source\\repos\\hagaki\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{F6642F8E-3657-4758-BA2D-9720501FF096}|hagaki\\hagaki.csproj|c:\\users\\takahashi\\source\\repos\\hagaki\\hagaki\\frm0500_maintenance.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F6642F8E-3657-4758-BA2D-9720501FF096}|hagaki\\hagaki.csproj|solutionrelative:hagaki\\frm0500_maintenance.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F6642F8E-3657-4758-BA2D-9720501FF096}|hagaki\\hagaki.csproj|c:\\users\\takahashi\\source\\repos\\hagaki\\hagaki\\mystaticclass.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F6642F8E-3657-4758-BA2D-9720501FF096}|hagaki\\hagaki.csproj|solutionrelative:hagaki\\mystaticclass.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F6642F8E-3657-4758-BA2D-9720501FF096}|hagaki\\hagaki.csproj|c:\\users\\takahashi\\source\\repos\\hagaki\\hagaki\\frm0100_in_data.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F6642F8E-3657-4758-BA2D-9720501FF096}|hagaki\\hagaki.csproj|solutionrelative:hagaki\\frm0100_in_data.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{F6642F8E-3657-4758-BA2D-9720501FF096}|hagaki\\hagaki.csproj|c:\\users\\takahashi\\source\\repos\\hagaki\\hagaki\\frm0600_out_report.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F6642F8E-3657-4758-BA2D-9720501FF096}|hagaki\\hagaki.csproj|solutionrelative:hagaki\\frm0600_out_report.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -27,40 +19,14 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "Frm0500_MAINTENANCE.cs",
-              "DocumentMoniker": "C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\Frm0500_MAINTENANCE.cs",
-              "RelativeDocumentMoniker": "hagaki\\Frm0500_MAINTENANCE.cs",
-              "ToolTip": "C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\Frm0500_MAINTENANCE.cs",
-              "RelativeToolTip": "hagaki\\Frm0500_MAINTENANCE.cs",
-              "ViewState": "AgIAAJ0CAAAAAAAAAAAtwLMCAAA0AAAAAAAAAA==",
+              "Title": "Frm0600_OUT_REPORT.cs",
+              "DocumentMoniker": "C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\Frm0600_OUT_REPORT.cs",
+              "RelativeDocumentMoniker": "hagaki\\Frm0600_OUT_REPORT.cs",
+              "ToolTip": "C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\Frm0600_OUT_REPORT.cs",
+              "RelativeToolTip": "hagaki\\Frm0600_OUT_REPORT.cs",
+              "ViewState": "AgIAAG0AAAAAAAAAAAAQwBwAAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-12T02:20:56.332Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "MyStaticClass.cs",
-              "DocumentMoniker": "C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\MyStaticClass.cs",
-              "RelativeDocumentMoniker": "hagaki\\MyStaticClass.cs",
-              "ToolTip": "C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\MyStaticClass.cs",
-              "RelativeToolTip": "hagaki\\MyStaticClass.cs",
-              "ViewState": "AgIAAE4AAAAAAAAAAAAgwGEAAAAVAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-12T02:11:12.814Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "Frm0100_IN_DATA.cs",
-              "DocumentMoniker": "C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\Frm0100_IN_DATA.cs",
-              "RelativeDocumentMoniker": "hagaki\\Frm0100_IN_DATA.cs",
-              "ToolTip": "C:\\Users\\takahashi\\source\\repos\\hagaki\\hagaki\\Frm0100_IN_DATA.cs",
-              "RelativeToolTip": "hagaki\\Frm0100_IN_DATA.cs",
-              "ViewState": "AgIAAAkBAAAAAAAAAAD4vwgBAABpAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-12T00:58:20.533Z",
+              "WhenOpened": "2025-03-25T01:56:26.668Z",
               "EditorCaption": ""
             }
           ]

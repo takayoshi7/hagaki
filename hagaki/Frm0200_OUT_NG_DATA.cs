@@ -28,7 +28,7 @@ namespace hagaki
         #endregion
 
         #region 定数
-        private const string OUT_NG_PATH_NODE = "DIR/OUT_NG_FLDPATH"; // ノード
+        private const string OUT_NG_PATH_NODE = "DIR/OUT_NG_FLDPATH"; // NG票出力先ノード
         private const string HINA_EXCEL_FILE_PATH = "NG票_雛型.xlsx"; // 雛型になるエクセルファイルのパス
         #endregion
 
@@ -83,7 +83,7 @@ namespace hagaki
         }
         #endregion
 
-        #region エラーファイル出力先のフォルダを開く
+        #region NG票出力先のフォルダを開く
         private void OutputDirButton_Click(object sender, EventArgs e)
         {
             try
@@ -115,6 +115,9 @@ namespace hagaki
         {
             try
             {
+                // マウスカーソルを砂時計にする
+                Cursor = Cursors.WaitCursor;
+
                 // 件数初期化
                 InitNgCount();
 
@@ -123,38 +126,56 @@ namespace hagaki
                     // 接続を開く
                     connection.Open();
 
-                    // DataSetを作成
-                    DataSet dataSet = new DataSet();
+                    using (SqlCommand command = connection.CreateCommand())
+                    {
+                        // DataSetを作成
+                        DataSet dataSet = new DataSet();
 
-                    // D_MAINテーブルのNG票出力対象データを取得SQL文の生成
-                    StringBuilder ngSubjectDMainSqlStr = new StringBuilder();
-                    ngSubjectDMainSqlStr.AppendLine("SELECT");
-                    ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.KANRI_NO,");
-                    ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.UKE_DATE,");
-                    ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.ZIP_CD,");
-                    ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.ADD_1,");
-                    ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.ADD_2,");
-                    ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.ADD_3,");
-                    ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.ADD_4,");
-                    ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.NAME_SEI,");
-                    ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.NAME_MEI,");
-                    ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.TEL_NO,");
-                    ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.ANK_1,");
-                    ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.ANK_2,");
-                    ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.ANK_3,");
-                    ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_ERROR}.ERR_CD,");
-                    ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.M_ERROR}.ERR_MONGON");
-                    ngSubjectDMainSqlStr.AppendLine($" FROM {MyStaticClass.D_MAIN}");
-                    ngSubjectDMainSqlStr.AppendLine($" INNER JOIN {MyStaticClass.D_ERROR} ON {MyStaticClass.D_MAIN}.KANRI_NO = {MyStaticClass.D_ERROR}.KANRI_NO");
-                    ngSubjectDMainSqlStr.AppendLine($" INNER JOIN {MyStaticClass.M_ERROR} ON {MyStaticClass.D_ERROR}.ERR_CD = {MyStaticClass.M_ERROR}.ERR_CD");
-                    ngSubjectDMainSqlStr.AppendLine($" WHERE {MyStaticClass.D_MAIN}.JYOTAI_KB = '{(int)JyotaiKb.Ng}' AND {MyStaticClass.D_MAIN}.NG_OUT_KB = '{(int)NgOutKb.Un}'");
-                    ngSubjectDMainSqlStr.AppendLine($" ORDER BY {MyStaticClass.D_MAIN}.KANRI_NO ASC, {MyStaticClass.D_ERROR}.ERR_CD ASC");
+                        // D_MAINテーブルのNG票出力対象データを取得SQL文の生成
+                        StringBuilder ngSubjectDMainSqlStr = new StringBuilder();
+                        ngSubjectDMainSqlStr.AppendLine("SELECT");
+                        ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.KANRI_NO,");
+                        ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.UKE_DATE,");
+                        ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.ZIP_CD,");
+                        ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.ADD_1,");
+                        ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.ADD_2,");
+                        ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.ADD_3,");
+                        ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.ADD_4,");
+                        ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.NAME_SEI,");
+                        ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.NAME_MEI,");
+                        ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.TEL_NO,");
+                        ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.ANK_1,");
+                        ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.ANK_2,");
+                        ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.ANK_3,");
+                        ngSubjectDMainSqlStr.AppendLine($" STRING_AGG({MyStaticClass.M_ERROR}.ERR_MONGON, CHAR(13) + CHAR(10)) AS error");
+                        ngSubjectDMainSqlStr.AppendLine($" FROM {MyStaticClass.D_MAIN}");
+                        ngSubjectDMainSqlStr.AppendLine($" INNER JOIN {MyStaticClass.D_ERROR} ON {MyStaticClass.D_MAIN}.KANRI_NO = {MyStaticClass.D_ERROR}.KANRI_NO");
+                        ngSubjectDMainSqlStr.AppendLine($" INNER JOIN {MyStaticClass.M_ERROR} ON {MyStaticClass.D_ERROR}.ERR_CD = {MyStaticClass.M_ERROR}.ERR_CD");
+                        ngSubjectDMainSqlStr.AppendLine($" WHERE {MyStaticClass.D_MAIN}.JYOTAI_KB = '{(int)JyotaiKb.Ng}' AND {MyStaticClass.D_MAIN}.NG_OUT_KB = '{(int)NgOutKb.Un}'");
+                        ngSubjectDMainSqlStr.AppendLine($" GROUP BY");
+                        ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.KANRI_NO,");
+                        ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.UKE_DATE,");
+                        ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.ZIP_CD,");
+                        ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.ADD_1,");
+                        ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.ADD_2,");
+                        ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.ADD_3,");
+                        ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.ADD_4,");
+                        ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.NAME_SEI,");
+                        ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.NAME_MEI,");
+                        ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.TEL_NO,");
+                        ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.ANK_1,");
+                        ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.ANK_2,");
+                        ngSubjectDMainSqlStr.AppendLine($" {MyStaticClass.D_MAIN}.ANK_3");
+                        ngSubjectDMainSqlStr.AppendLine($" ORDER BY {MyStaticClass.D_MAIN}.KANRI_NO ASC");
 
-                    // データを取得してDataSetに追加
-                    _myClass.FillDataTable(dataSet, connection, null, ngSubjectDMainSqlStr.ToString(), null, MyStaticClass.D_MAIN + "_NG");
+                        command.CommandText = ngSubjectDMainSqlStr.ToString();
 
-                    // D_MAIN_NGテーブル取得
-                    noOutNgTable = dataSet.Tables[MyStaticClass.D_MAIN + "_NG"];
+                        // データを取得してDataSetに追加
+                        _myClass.FillDataTable(dataSet, command, null, MyStaticClass.D_MAIN + "_NG");
+
+                        // D_MAIN_NGテーブル取得
+                        noOutNgTable = dataSet.Tables[MyStaticClass.D_MAIN + "_NG"];
+                    }
                 }
 
                 // 事務局管理番号だけのリスト作成
@@ -162,9 +183,6 @@ namespace hagaki
                 {
                     ngKanriNoList.Add(record["KANRI_NO"].ToString());
                 }
-
-                // 重複削除して昇順に並び替え
-                ngKanriNoList = ngKanriNoList.Distinct().OrderBy(x => x).ToList();
 
                 // 件数表示
                 NgCountLabel.Text = ngKanriNoList.Count.ToString();
@@ -177,6 +195,9 @@ namespace hagaki
                     OutputButton.BackColor = SystemColors.GradientActiveCaption;
                     OutputButton.Cursor = Cursors.Hand;
                 }
+
+                // マウスカーソルを元に戻す
+                Cursor = Cursors.Default;
             }
             catch (SqlException sqlex)
             {
@@ -210,6 +231,9 @@ namespace hagaki
                     return;
                 }
 
+                // マウスカーソルを砂時計にする
+                Cursor = Cursors.WaitCursor;
+
                 // 出力先フォルダがない場合フォルダを作成する
                 if (!Directory.Exists(outNgFolderPath))
                 {
@@ -219,9 +243,6 @@ namespace hagaki
                 // エクセル出力処理
                 OutputExcel();
 
-                // ログインユーザー名取得
-                string loginID = StCls_Function.GetUser();
-
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
                     // 接続を開く
@@ -230,15 +251,31 @@ namespace hagaki
                     // トランザクション開始
                     using (SqlTransaction transaction = connection.BeginTransaction())
                     {
-                        foreach (string kanriNo in ngKanriNoList)
+                        using (SqlCommand command = connection.CreateCommand())
                         {
-                            // D_MAINアップデート
-                            bool dMainOutExcuteCheck = UpdateDMainTable(connection, transaction, kanriNo, loginID);
+                            command.Transaction = transaction;
 
-                            if (!dMainOutExcuteCheck)
+                            foreach (string kanriNo in ngKanriNoList)
                             {
-                                MessageBox.Show("D_MAINテーブルの更新に失敗しました。", "エラー");
-                                return;
+                                #region D_MAINを更新
+                                // D_MAINアップデートSQL文の作成
+                                command.CommandText = MyStaticClass.MakeUpdateSql(MyStaticClass.D_MAIN, "OUT_NG");
+
+                                // パラメータ
+                                Dictionary<string, object> kanriNoParameter = new Dictionary<string, object>
+                                {
+                                    { "@KanriNo", kanriNo }
+                                };
+
+                                // D_MAINアップデートSQL文を実行
+                                bool dMainOutExcuteCheck = MyStaticClass.Execute(command, kanriNoParameter);
+
+                                if (!dMainOutExcuteCheck)
+                                {
+                                    MessageBox.Show("D_MAINテーブルの更新に失敗しました。", "エラー");
+                                    return;
+                                }
+                                #endregion
                             }
                         }
 
@@ -249,6 +286,9 @@ namespace hagaki
 
                 // 件数初期化
                 InitNgCount();
+
+                // マウスカーソルを元に戻す
+                Cursor = Cursors.Default;
 
                 MessageBox.Show("NG票を出力しました。", "確認");
             }
@@ -324,7 +364,7 @@ namespace hagaki
                 Excel.Worksheet originalSheet = excelBook.Sheets["雛型"];
 
                 // エクセルにデータをセット
-                foreach (string recordKnum in ngKanriNoList)
+                foreach (DataRow rows in noOutNgTable.Rows)
                 {
                     // 雛型シートを後ろにコピー
                     originalSheet.Copy(After: excelBook.Sheets[excelBook.Sheets.Count]);
@@ -333,7 +373,7 @@ namespace hagaki
                     Excel.Worksheet sheet = (Excel.Worksheet)excelBook.Sheets[excelBook.Sheets.Count];
 
                     // シート名を対象の事務局管理番号にする
-                    sheet.Name = recordKnum;
+                    sheet.Name = rows["KANRI_NO"].ToString();
 
                     // エクセルに出力日をセット
                     sheet.Cells[4, 25] = nowDateTime_data;
@@ -341,48 +381,29 @@ namespace hagaki
                     // エクセルファイル用メインデータ2次元配列作成
                     object[,] setData = new object[13, 1];
 
-                    // エクセルファイル貼り付け用NG内容
-                    string setError = "";
+                    // メインデータをセット
+                    setData[0, 0] = rows["KANRI_NO"];
+                    setData[1, 0] = rows["UKE_DATE"].ToString().Insert(6, "/").Insert(4, "/");
+                    setData[2, 0] = rows["ZIP_CD"];
+                    setData[3, 0] = rows["ADD_1"];
+                    setData[4, 0] = rows["ADD_2"];
+                    setData[5, 0] = rows["ADD_3"];
+                    setData[6, 0] = rows["ADD_4"];
+                    setData[7, 0] = rows["NAME_SEI"];
+                    setData[8, 0] = rows["NAME_MEI"];
+                    setData[9, 0] = rows["TEL_NO"];
+                    setData[10, 0] = rows["ANK_1"];
+                    setData[11, 0] = rows["ANK_2"];
+                    setData[12, 0] = rows["ANK_3"];
 
-                    foreach (DataRow rows in noOutNgTable.Rows)
-                    {
-                        // 対象の事務局管理番号でなければ次のレコードに
-                        if (rows["KANRI_NO"].ToString() != recordKnum)
-                        {
-                            continue;
-                        }
+                    // メインデータの貼り付け範囲指定
+                    Excel.Range range = sheet.Range[sheet.Cells[8, 9], sheet.Cells[20, 9]];
 
-                        // メインデータがまだ張り付けられてない場合
-                        if (setData[0, 0] == null)
-                        {
-                            // メインデータをセット
-                            setData[0, 0] = recordKnum;
-                            setData[1, 0] = rows["UKE_DATE"].ToString().Insert(6, "/").Insert(4, "/");
-                            setData[2, 0] = rows["ZIP_CD"];
-                            setData[3, 0] = rows["ADD_1"];
-                            setData[4, 0] = rows["ADD_2"];
-                            setData[5, 0] = rows["ADD_3"];
-                            setData[6, 0] = rows["ADD_4"];
-                            setData[7, 0] = rows["NAME_SEI"];
-                            setData[8, 0] = rows["NAME_MEI"];
-                            setData[9, 0] = rows["TEL_NO"];
-                            setData[10, 0] = rows["ANK_1"];
-                            setData[11, 0] = rows["ANK_2"];
-                            setData[12, 0] = rows["ANK_3"];
-
-                            // メインデータの貼り付け範囲指定
-                            Excel.Range range = sheet.Range[sheet.Cells[8, 9], sheet.Cells[20, 9]];
-
-                            // メインデータをエクセルファイルに貼り付け
-                            range.Value = setData;
-                        }
-
-                        // NG内容取得
-                        setError += "・" + rows["ERR_MONGON"].ToString() + Environment.NewLine;
-                    }
+                    // メインデータをエクセルファイルに貼り付け
+                    range.Value = setData;
 
                     // エクセルにNG内容をセット
-                    sheet.Cells[7, 16] = setError;
+                    sheet.Cells[7, 16] = rows["error"]; ;
                 }
 
                 // 雛型シートを削除
@@ -398,47 +419,12 @@ namespace hagaki
             }
             finally
             {
-                // ファイルクローズ
+                // エクセルアプリケーションを終了
                 excelApp.Quit();
 
                 // COMオブジェクト開放
                 Marshal.ReleaseComObject(excelApp);
                 excelApp = null;
-            }
-        }
-        #endregion
-
-        #region D_MAINテーブル更新処理
-        /// <summary>
-        /// D_MAINテーブルをアップデートする
-        /// </summary>
-        /// <param name="connection">SqlConnection</param>
-        /// <param name="transaction">SqlTransaction</param>
-        /// <param name="kanriNo">事務局管理番号</param>
-        /// <param name="nowDateTime_DB">現在の日時（データ用）</param>
-        /// <param name="loginID">ログインユーザー名</param>
-        /// <returns></returns>
-        private bool UpdateDMainTable(SqlConnection connection, SqlTransaction transaction, string kanriNo, string loginID)
-        {
-            try
-            {
-                // D_MAINアップデートSQL文の作成
-                string dMainNgOutUpdateSql = MyStaticClass.MakeUpdateSql(MyStaticClass.D_MAIN, "OUT_NG");
-
-                // パラメータ
-                Dictionary<string, object> kanriNoParameter = new Dictionary<string, object>
-                            {
-                                { "@KanriNo", kanriNo }
-                            };
-
-                // D_MAINアップデートSQL文を実行
-                bool excuteCheck = MyStaticClass.Execute(connection, transaction, dMainNgOutUpdateSql.ToString(), kanriNoParameter);
-
-                return excuteCheck;
-            }
-            catch (Exception)
-            {
-                throw;
             }
         }
         #endregion

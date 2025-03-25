@@ -88,13 +88,16 @@ namespace hagaki
                     // 接続を開く
                     connection.Open();
 
-                    DataSet dataSet = new DataSet();
+                    using (SqlCommand command = connection.CreateCommand())
+                    {
+                        DataSet dataSet = new DataSet();
 
-                    // 絞り込まれたデータレコード情報を取得
-                    GetSeachResultData(dataSet, connection, searchResultKanriNoList);
+                        // 絞り込まれたデータレコード情報を取得
+                        GetSeachResultData(dataSet, command, searchResultKanriNoList);
 
-                    // D_ERRORテーブルに登録されているエラーコード情報取得
-                    GetFullErrorCode(dataSet, connection);
+                        // D_ERRORテーブルに登録されているエラーコード情報取得
+                        GetFullErrorCode(dataSet, command);
+                    }
                 }
 
                 // ページ表示
@@ -263,73 +266,78 @@ namespace hagaki
                     // トランザクション開始
                     using (SqlTransaction transaction = connection.BeginTransaction())
                     {
-
-                        // D_ERRORデリートSQL文の生成
-                        string dErrorDeleteSqlStr = MyStaticClass.MakeDeleteSql(MyStaticClass.D_ERROR, selectedKanriNo);
-
-                        // パラメータ
-                        Dictionary<string, object> kanriNoParameter = new Dictionary<string, object>
+                        using (SqlCommand command = connection.CreateCommand())
                         {
-                            { "@KanriNo", selectedKanriNo }
-                        };
+                            // コマンドにトランザクションを設定
+                            command.Transaction = transaction;
 
-                        // D_ERRORデリートSQL文を実行
-                        bool dErrorDeleteExcuteCheck = MyStaticClass.Execute(connection, transaction, dErrorDeleteSqlStr, kanriNoParameter);
+                            // D_ERRORデリートSQL文の生成
+                            command.CommandText = MyStaticClass.MakeDeleteSql(MyStaticClass.D_ERROR, selectedKanriNo);
 
-                        if (!dErrorDeleteExcuteCheck)
-                        {
-                            MessageBox.Show("D_ERRORテーブルの削除に失敗しました。", "エラー");
-                            return;
-                        }
-
-                        if (errorList.Count != 0)
-                        {
-                            // 新しいエラーコードでD_ERRORに登録
-                            foreach (int errorCd in errorList)
+                            // パラメータ
+                            Dictionary<string, object> kanriNoParameter = new Dictionary<string, object>
                             {
-                                // D_ERRORインサートSQL文の生成
-                                string dErrorSqlStr = $"INSERT INTO {MyStaticClass.D_ERROR}(KANRI_NO, ERR_CD) VALUES (@KanriNo, '{errorCd}')";
+                                { "@KanriNo", selectedKanriNo }
+                            };
 
-                                // SQL文を実行
-                                bool dErrorExcuteCheck = MyStaticClass.Execute(connection, transaction, dErrorSqlStr, kanriNoParameter);
+                            // D_ERRORデリートSQL文を実行
+                            bool dErrorDeleteExcuteCheck = MyStaticClass.Execute(command, kanriNoParameter);
 
-                                if (!dErrorExcuteCheck)
+                            if (!dErrorDeleteExcuteCheck)
+                            {
+                                MessageBox.Show("D_ERRORテーブルの削除に失敗しました。", "エラー");
+                                return;
+                            }
+
+                            if (errorList.Count != 0)
+                            {
+                                // 新しいエラーコードでD_ERRORに登録
+                                foreach (int errorCd in errorList)
                                 {
-                                    MessageBox.Show("D_ERRORテーブルの登録に失敗しました。", "エラー");
-                                    return;
+                                    // D_ERRORインサートSQL文の生成
+                                    command.CommandText = $"INSERT INTO {MyStaticClass.D_ERROR}(KANRI_NO, ERR_CD) VALUES (@KanriNo, '{errorCd}')";
+
+                                    // SQL文を実行
+                                    bool dErrorExcuteCheck = MyStaticClass.Execute(command, kanriNoParameter);
+
+                                    if (!dErrorExcuteCheck)
+                                    {
+                                        MessageBox.Show("D_ERRORテーブルの登録に失敗しました。", "エラー");
+                                        return;
+                                    }
                                 }
                             }
-                        }
 
-                        // D_MAINアップデートSQL文の生成
-                        string dMainUpdateSql = MyStaticClass.MakeUpdateSql(MyStaticClass.D_MAIN, "MAINTENANCE");
+                            // D_MAINアップデートSQL文の生成
+                            command.CommandText = MyStaticClass.MakeUpdateSql(MyStaticClass.D_MAIN, "MAINTENANCE");
 
-                        // 項目ごとのパラメータを辞書で管理
-                        Dictionary<string, object> parameters = MyStaticClass.KeyValuePairs(newDataArray);
-                        parameters.Add("@JyotaiKb", newDataArray[(int)MainTableColumn.JyotaiKb]);
-                        parameters.Add("@NgOutKb", newDataArray[(int)MainTableColumn.NgOutKb]);
-                        parameters.Add("@HisoOutKb", newDataArray[(int)MainTableColumn.HisoOutKb]);
+                            // 項目ごとのパラメータを辞書で管理
+                            Dictionary<string, object> parameters = MyStaticClass.KeyValuePairs(newDataArray);
+                            parameters.Add("@JyotaiKb", newDataArray[(int)MainTableColumn.JyotaiKb]);
+                            parameters.Add("@NgOutKb", newDataArray[(int)MainTableColumn.NgOutKb]);
+                            parameters.Add("@HisoOutKb", newDataArray[(int)MainTableColumn.HisoOutKb]);
 
-                        // D_MAINアップデートSQL文を実行
-                        bool dMainUpdateExcuteCheck = MyStaticClass.Execute(connection, transaction, dMainUpdateSql, parameters);
+                            // D_MAINアップデートSQL文を実行
+                            bool dMainUpdateExcuteCheck = MyStaticClass.Execute(command, parameters);
 
-                        if (!dMainUpdateExcuteCheck)
-                        {
-                            MessageBox.Show("D_MAINテーブルの更新に失敗しました。", "エラー");
-                            return;
+                            if (!dMainUpdateExcuteCheck)
+                            {
+                                MessageBox.Show("D_MAINテーブルの更新に失敗しました。", "エラー");
+                                return;
+                            }
+
+                            DataSet dataSet = new DataSet();
+
+                            // 絞り込まれたデータレコード情報を最新に
+                            GetSeachResultData(dataSet, command, searchResultKanriNoList);
+
+                            // D_ERRORテーブルに登録されているエラーコード情報取得
+                            GetFullErrorCode(dataSet, command);
                         }
 
                         // コミット
                         transaction.Commit();
                     }
-
-                    DataSet dataSet = new DataSet();
-
-                    // 絞り込まれたデータレコード情報を最新に
-                    GetSeachResultData(dataSet, connection, searchResultKanriNoList);
-
-                    // D_ERRORテーブルに登録されているエラーコード情報取得
-                    GetFullErrorCode(dataSet, connection);
                 }
 
                 // 選択されている管理番号のレコード情報取得
@@ -477,8 +485,10 @@ namespace hagaki
         /// <summary>
         /// 管理番号リストからD_MAINテーブルに該当するデータを取得
         /// </summary>
+        /// <param name="dataSet">DataSet</param>
+        /// <param name="command">SqlCommand</param>
         /// <param name="kanriNoList">絞り込まれたデータの管理番号のみのリスト</param>
-        private void GetSeachResultData(DataSet dataSet, SqlConnection connection, List<string> kanriNoList)
+        private void GetSeachResultData(DataSet dataSet, SqlCommand command, List<string> kanriNoList)
         {
             // 検索画面で絞り込まれた管理番号リストの対象レコード取得SQL文の生成
             StringBuilder query = new StringBuilder();
@@ -499,8 +509,10 @@ namespace hagaki
                 }
             }
 
+            command.CommandText = query.ToString();
+
             // 検索結果取得
-            _myClass.FillDataTable(dataSet, connection, null, query.ToString(), parameters, "SEARCH_DATA");
+            _myClass.FillDataTable(dataSet, command, parameters, "SEARCH_DATA");
 
             searchResultData = dataSet.Tables["SEARCH_DATA"];
         }
@@ -526,15 +538,17 @@ namespace hagaki
         /// <summary>
         /// D_ERRORテーブルに登録されているエラーコード情報取得してデータテーブルにセットする
         /// </summary>
-        private void GetFullErrorCode(DataSet dataSet, SqlConnection connection)
+        /// <param name="dataSet">DataSet</param>
+        /// <param name="command">SqlCommand</param>
+        private void GetFullErrorCode(DataSet dataSet, SqlCommand command)
         {
             // レコードのエラーコード取得SQL文の生成
-            string query = $"SELECT {MyStaticClass.D_ERROR}.KANRI_NO, {MyStaticClass.D_ERROR}.ERR_CD, {MyStaticClass.M_ERROR}.ERR_MONGON FROM {MyStaticClass.D_ERROR} " +
+            command.CommandText = $"SELECT {MyStaticClass.D_ERROR}.KANRI_NO, {MyStaticClass.D_ERROR}.ERR_CD, {MyStaticClass.M_ERROR}.ERR_MONGON FROM {MyStaticClass.D_ERROR} " +
                                     $"INNER JOIN {MyStaticClass.M_ERROR} ON {MyStaticClass.D_ERROR}.ERR_CD = {MyStaticClass.M_ERROR}.ERR_CD " +
                                     $"ORDER BY {MyStaticClass.D_ERROR}.KANRI_NO ASC";
 
             // 検索結果取得
-            _myClass.FillDataTable(dataSet, connection, null, query, null, "ErrorCode");
+            _myClass.FillDataTable(dataSet, command, null, "ErrorCode");
 
             fullErrorCodeData = dataSet.Tables["ErrorCode"];
         }
@@ -624,7 +638,6 @@ namespace hagaki
                 // エラー表示
                 ErrorDataGridView.Rows.Add(rows["ERR_CD"], rows["ERR_MONGON"]);
 
-                // 追加設定（仕様書に無い）
                 // データ表示時にエラーの項目は背景を赤に
                 switch (rows["ERR_CD"])
                 {

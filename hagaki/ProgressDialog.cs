@@ -26,7 +26,7 @@ namespace hagaki
 
         /// <param name="workHandler">進捗管理する処理</param>
         /// <param name="tuple">進捗管理する処理に渡すSqlConnectionとSqlTransaction</param>
-        public ProgressDialog(DoWorkEventHandler workHandler, Tuple<SqlConnection, SqlTransaction> tuple)
+        public ProgressDialog(DoWorkEventHandler workHandler, SqlCommand command)
         {
             InitializeComponent();
 
@@ -43,8 +43,8 @@ namespace hagaki
             backgroundWorker.ProgressChanged += BackgroundWorker_ProgressChanged;
             // 処理が完了した後の処理をするためのイベント
             backgroundWorker.RunWorkerCompleted += BackgroundWorker_RunWorkerCompleted;
-            // バックグラウンド作業を非同期に開始（進捗管理する処理（Frm0300_OUT_HISO_DATA.ProgressDialog_DoWork）にSqlConnectionとSqlTransactionを渡す）
-            backgroundWorker.RunWorkerAsync(tuple);
+            // バックグラウンド作業を非同期に開始（進捗管理する処理（Frm0300_OUT_HISO_DATA.ProgressDialog_DoWork）にSqlCommandを渡す）
+            backgroundWorker.RunWorkerAsync(command);
             #endregion
         }
         #endregion

@@ -585,7 +585,7 @@ namespace hagaki
             } else if (operations == "OUT_NG")
             {
                 sqlStr.AppendLine($" NG_OUT_KB = '{(int)NgOutKb.Done}',");
-                sqlStr.AppendLine(" NG_OUT_DATETIME = '{nowDateTime}',");
+                sqlStr.AppendLine($" NG_OUT_DATETIME = '{nowDateTime}',");
                 sqlStr.AppendLine($" NG_OUT_LOGINID = '{loginID}',");
                 sqlStr.AppendLine($" UPDATE_DATETIME = '{nowDateTime}',");
                 sqlStr.AppendLine($" UPDATE_LOGINID = '{loginID}'");
@@ -637,34 +637,29 @@ namespace hagaki
         /// <summary>
         /// SQLを実行する
         /// </summary>
-        /// <param name="connection">SqlConnection</param>
-        /// <param name="transaction">SqlTransaction</param>
-        /// <param name="query">クエリ</param>
+        /// <param name="command">SqlCommand</param>
         /// <param name="parameters">パラメータ辞書</param>
         /// <returns>true：成功 / false：失敗</returns>
-        public static bool Execute(SqlConnection connection, SqlTransaction transaction, string query, Dictionary<string, object> parameters)
+        public static bool Execute(SqlCommand command, Dictionary<string, object> parameters)
         {
             try
             {
-                using (SqlCommand command = connection.CreateCommand())
+                // パラメータをクリア
+                command.Parameters.Clear();
+
+                // パラメータを追加
+                if (parameters != null)
                 {
-                    command.Transaction = transaction;
-                    command.CommandText = query;
-
-                    // パラメータを追加
-                    if (parameters != null)
+                    foreach (var param in parameters)
                     {
-                        foreach (var param in parameters)
-                        {
-                            command.Parameters.AddWithValue(param.Key, param.Value);
-                        }
+                        command.Parameters.AddWithValue(param.Key, param.Value);
                     }
-
-                    // SQL実行
-                    command.ExecuteNonQuery();
-
-                    return true;
                 }
+
+                // SQL実行
+                command.ExecuteNonQuery();
+
+                return true;
             }
             catch (Exception)
             {
@@ -674,23 +669,27 @@ namespace hagaki
         #endregion
 
         #region レコード数取得
-        public static int GetRecordCount(SqlConnection connection, SqlTransaction transaction, string table, string column, string filter = "")
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="command">SqlCommand</param>
+        /// <param name="table">テーブル名</param>
+        /// <param name="column">カラム名</param>
+        /// <param name="filter">条件</param>
+        /// <returns></returns>
+        public static int GetRecordCount(SqlCommand command, string table, string column, string filter = "")
         {
             string query = $"SELECT COUNT({column}) FROM {table}";
 
             if (!string.IsNullOrEmpty(filter))
             {
-                query = query + $" WHERE {filter}";
+                query += $" WHERE {filter}";
             }
 
-            using (SqlCommand command = connection.CreateCommand())
-            {
-                command.Transaction = transaction;
-                command.CommandText = query;
+            command.CommandText = query;
 
-                // 件数を返す（対象レコードが無い場合、SQL文のCOUNTは0を返すため、ExecuteScalarも0を返す）
-                return (int)command.ExecuteScalar();
-            }
+            // 件数を返す（対象レコードが無い場合、SQL文のCOUNTは0を返すため、ExecuteScalarも0を返す）
+            return (int)command.ExecuteScalar();
         }
         #endregion
 

@@ -53,45 +53,48 @@ namespace hagaki
                 {
                     connection.Open();
 
-                    // DataSetを作成
-                    DataSet dataSet = new DataSet();
+                    using (SqlCommand command = connection.CreateCommand())
+                    {
+                        // DataSetを作成
+                        DataSet dataSet = new DataSet();
 
-                    #region **********状態区分選択コンボボックス用リスト作成**********
-                    // M_JYOTAIテーブルデータを取得SQL文の生成
-                    string jyotaiSqlStr = $"SELECT * FROM {MyStaticClass.M_JYOTAI}";
+                        #region **********状態区分選択コンボボックス用リスト作成**********
+                        // M_JYOTAIテーブルデータを取得SQL文の生成
+                        command.CommandText = $"SELECT * FROM {MyStaticClass.M_JYOTAI}";
 
-                    // データを取得してDataSetに追加
-                    _myClass.FillDataTable(dataSet, connection, null, jyotaiSqlStr, null, MyStaticClass.M_JYOTAI);
+                        // データを取得してDataSetに追加
+                        _myClass.FillDataTable(dataSet, command, null, MyStaticClass.M_JYOTAI);
 
-                    // コンボボックスに設定
-                    JyotaiKb.DataSource = dataSet.Tables[MyStaticClass.M_JYOTAI];
-                    JyotaiKb.ValueMember = "JYOTAI_KB";
-                    JyotaiKb.DisplayMember = "JYOTAI_NAME";
+                        // コンボボックスに設定
+                        JyotaiKb.DataSource = dataSet.Tables[MyStaticClass.M_JYOTAI];
+                        JyotaiKb.ValueMember = "JYOTAI_KB";
+                        JyotaiKb.DisplayMember = "JYOTAI_NAME";
 
-                    // 初期選択肢を空にする（選択なし）
-                    JyotaiKb.SelectedIndex = -1;
-                    #endregion
+                        // 初期選択肢を空にする（選択なし）
+                        JyotaiKb.SelectedIndex = -1;
+                        #endregion
 
-                    #region **********出力区分選択コンボボックス用リスト作成**********
-                    // M_OUTテーブルデータを取得SQL文の生成
-                    string outSqlStr = $"SELECT * FROM {MyStaticClass.M_OUT}";
+                        #region **********出力区分選択コンボボックス用リスト作成**********
+                        // M_OUTテーブルデータを取得SQL文の生成
+                        command.CommandText = $"SELECT * FROM {MyStaticClass.M_OUT}";
 
-                    // データを取得してDataSetに追加
-                    _myClass.FillDataTable(dataSet, connection, null, outSqlStr, null, MyStaticClass.M_OUT);
+                        // データを取得してDataSetに追加
+                        _myClass.FillDataTable(dataSet, command, null, MyStaticClass.M_OUT);
 
-                    // コンボボックスに設定
-                    NgOutKb.DataSource = dataSet.Tables[MyStaticClass.M_OUT];
-                    NgOutKb.ValueMember = "OUT_KB";
-                    NgOutKb.DisplayMember = "OUT_NAME";
-                    DataTable copyOutTable = dataSet.Tables[MyStaticClass.M_OUT].Copy();
-                    HisoOutKb.DataSource = copyOutTable;
-                    HisoOutKb.ValueMember = "OUT_KB";
-                    HisoOutKb.DisplayMember = "OUT_NAME";
+                        // コンボボックスに設定
+                        NgOutKb.DataSource = dataSet.Tables[MyStaticClass.M_OUT];
+                        NgOutKb.ValueMember = "OUT_KB";
+                        NgOutKb.DisplayMember = "OUT_NAME";
+                        DataTable copyOutTable = dataSet.Tables[MyStaticClass.M_OUT].Copy();
+                        HisoOutKb.DataSource = copyOutTable;
+                        HisoOutKb.ValueMember = "OUT_KB";
+                        HisoOutKb.DisplayMember = "OUT_NAME";
 
-                    // 初期選択肢を空にする（選択なし）
-                    NgOutKb.SelectedIndex = -1;
-                    HisoOutKb.SelectedIndex = -1;
-                    #endregion
+                        // 初期選択肢を空にする（選択なし）
+                        NgOutKb.SelectedIndex = -1;
+                        HisoOutKb.SelectedIndex = -1;
+                        #endregion
+                    }
                 }
 
                 #region 検索結果のデータが0だった場合の表示用テーブル作成
@@ -149,9 +152,6 @@ namespace hagaki
         {
             try
             {
-                // マウスカーソルを砂時計にする
-                Cursor = Cursors.WaitCursor;
-
                 // 入力値を取得
                 string beforeK_No = BeforeKanriNo.Text;
                 string afterK_No = AfterKanriNo.Text;
@@ -184,115 +184,126 @@ namespace hagaki
                     return;
                 }
 
+                // マウスカーソルを砂時計にする
+                Cursor = Cursors.WaitCursor;
+
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
                     // DBを開く
                     connection.Open();
 
-                    // DataSetを作成
-                    DataSet dataSet = new DataSet();
-
-                    // SQL文作成用
-                    StringBuilder getDmain = new StringBuilder();
-                    getDmain.AppendLine("SELECT *, " +
-                                        "CONCAT(ADD_1, ADD_2, ADD_3, ' ', ADD_4) AS ADD_ALL " +
-                                        $"FROM {MyStaticClass.D_MAIN} WHERE ");
-
-                    // パラメータ作成用
-                    Dictionary<string, object> parameters = new Dictionary<string, object>();
-
-                    // 検索条件設定
-                    if (!string.IsNullOrWhiteSpace(beforeK_No))
+                    using (SqlCommand command = connection.CreateCommand())
                     {
-                        getDmain.AppendLine("KANRI_NO >= @BeforeKariNo AND ");
-                        parameters.Add("@BeforeKariNo", beforeK_No);
-                    }
+                        // コマンドの設定
+                        command.CommandText = "SELECT * FROM " + MyStaticClass.D_MAIN;
 
-                    if (!string.IsNullOrWhiteSpace(afterK_No))
-                    {
-                        getDmain.AppendLine("KANRI_NO <= @AfterKariNo AND ");
-                        parameters.Add("@AfterKariNo", afterK_No);
-                    }
+                        // DataSetを作成
+                        DataSet dataSet = new DataSet();
 
-                    getDmain.AppendLine("UKE_DATE >= @UkeDateStart AND UKE_DATE <= @UkeDateEnd");
-                    parameters.Add("@UkeDateStart", beforeUke_Date.ToString("yyyyMMdd"));
-                    parameters.Add("@UkeDateEnd", afterUke_Date.ToString("yyyyMMdd"));
+                        // SQL文作成用
+                        StringBuilder getDmain = new StringBuilder();
+                        getDmain.AppendLine("SELECT *, " +
+                                            "CONCAT(ADD_1, ADD_2, ADD_3, ' ', ADD_4) AS ADD_ALL " +
+                                            $"FROM {MyStaticClass.D_MAIN} WHERE ");
 
-                    if (!string.IsNullOrWhiteSpace(zip_Cd))
-                    {
-                        getDmain.AppendLine(" AND ZIP_CD = @ZipCd");
-                        parameters.Add("@ZipCd", zip_Cd);
-                    }
+                        // パラメータ作成用
+                        Dictionary<string, object> parameters = new Dictionary<string, object>();
 
-                    if (!string.IsNullOrWhiteSpace(add_All))
-                    {
-                        getDmain.AppendLine(" AND CONCAT(ADD_1, ADD_2, ADD_3, ' ', ADD_4) LIKE @Address");
-                        parameters.Add("@Address", $"%{add_All}%");
-                    }
+                        // 検索条件設定
+                        if (!string.IsNullOrWhiteSpace(beforeK_No))
+                        {
+                            getDmain.AppendLine("KANRI_NO >= @BeforeKariNo AND ");
+                            parameters.Add("@BeforeKariNo", beforeK_No);
+                        }
 
-                    if (!string.IsNullOrWhiteSpace(name_Sei))
-                    {
-                        getDmain.AppendLine(" AND NAME_SEI LIKE @Sei");
-                        parameters.Add("@Sei", $"%{name_Sei}%");
-                    }
+                        if (!string.IsNullOrWhiteSpace(afterK_No))
+                        {
+                            getDmain.AppendLine("KANRI_NO <= @AfterKariNo AND ");
+                            parameters.Add("@AfterKariNo", afterK_No);
+                        }
 
-                    if (!string.IsNullOrWhiteSpace(name_Mei))
-                    {
-                        getDmain.AppendLine(" AND NAME_MEI LIKE @Mei");
-                        parameters.Add("@Mei", $"%{name_Mei}%");
-                    }
+                        getDmain.AppendLine("UKE_DATE >= @UkeDateStart AND UKE_DATE <= @UkeDateEnd");
+                        parameters.Add("@UkeDateStart", beforeUke_Date.ToString("yyyyMMdd"));
+                        parameters.Add("@UkeDateEnd", afterUke_Date.ToString("yyyyMMdd"));
 
-                    if (!string.IsNullOrWhiteSpace(tel_No))
-                    {
-                        getDmain.AppendLine(" AND TEL_NO LIKE @Tel");
-                        parameters.Add("@Tel", $"%{tel_No}%");
-                    }
+                        if (!string.IsNullOrWhiteSpace(zip_Cd))
+                        {
+                            getDmain.AppendLine(" AND ZIP_CD = @ZipCd");
+                            parameters.Add("@ZipCd", zip_Cd);
+                        }
 
-                    if (!string.IsNullOrWhiteSpace(jyotai_Kb))
-                    {
-                        getDmain.AppendLine(" AND JYOTAI_KB = @JotaiKb");
-                        parameters.Add("@JotaiKb", jyotai_Kb);
-                    }
+                        if (!string.IsNullOrWhiteSpace(add_All))
+                        {
+                            getDmain.AppendLine(" AND CONCAT(ADD_1, ADD_2, ADD_3, ' ', ADD_4) LIKE @Address");
+                            parameters.Add("@Address", $"%{add_All}%");
+                        }
 
-                    if (!string.IsNullOrWhiteSpace(ng_Out))
-                    {
-                        getDmain.AppendLine(" AND NG_OUT_KB = @NgOut");
-                        parameters.Add("@NgOut", ng_Out);
-                    }
+                        if (!string.IsNullOrWhiteSpace(name_Sei))
+                        {
+                            getDmain.AppendLine(" AND NAME_SEI LIKE @Sei");
+                            parameters.Add("@Sei", $"%{name_Sei}%");
+                        }
 
-                    if (!string.IsNullOrWhiteSpace(hiso_Out))
-                    {
-                        getDmain.AppendLine(" AND HISO_OUT_KB = @HisoOut");
-                        parameters.Add("@HisoOut", hiso_Out);
-                    }
+                        if (!string.IsNullOrWhiteSpace(name_Mei))
+                        {
+                            getDmain.AppendLine(" AND NAME_MEI LIKE @Mei");
+                            parameters.Add("@Mei", $"%{name_Mei}%");
+                        }
 
-                    // 検索結果取得
-                    _myClass.FillDataTable(dataSet, connection, null, getDmain.ToString(), parameters, MyStaticClass.D_MAIN);
+                        if (!string.IsNullOrWhiteSpace(tel_No))
+                        {
+                            getDmain.AppendLine(" AND TEL_NO LIKE @Tel");
+                            parameters.Add("@Tel", $"%{tel_No}%");
+                        }
 
-                    // 絞り込んだD_MAINテーブル取得
+                        if (!string.IsNullOrWhiteSpace(jyotai_Kb))
+                        {
+                            getDmain.AppendLine(" AND JYOTAI_KB = @JotaiKb");
+                            parameters.Add("@JotaiKb", jyotai_Kb);
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(ng_Out))
+                        {
+                            getDmain.AppendLine(" AND NG_OUT_KB = @NgOut");
+                            parameters.Add("@NgOut", ng_Out);
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(hiso_Out))
+                        {
+                            getDmain.AppendLine(" AND HISO_OUT_KB = @HisoOut");
+                            parameters.Add("@HisoOut", hiso_Out);
+                        }
+
+                        command.CommandText = getDmain.ToString();
+
+                        // 検索結果取得
+                        _myClass.FillDataTable(dataSet, command, parameters, MyStaticClass.D_MAIN);
+
+                        // 絞り込んだD_MAINテーブル取得
                         searchResultTable = dataSet.Tables[MyStaticClass.D_MAIN];
-
-                    // 検索結果による分岐処理
-                    if (searchResultTable.Rows.Count > 0)
-                    {
-                        // 検索結果あり
-                        DataGridView.DataSource = searchResultTable;
-
-                        // ADD_1、ADD_2、ADD_3、ADD_4カラムを非表示にする
-                        DataGridView.Columns["ADD_1"].Visible = false;
-                        DataGridView.Columns["ADD_2"].Visible = false;
-                        DataGridView.Columns["ADD_3"].Visible = false;
-                        DataGridView.Columns["ADD_4"].Visible = false;
                     }
-                    else
-                    {
-                        // 検索結果なし
-                        DataGridView.DataSource = nothingTable;
-                    }
-
-                    // マウスカーソルを元に戻す
-                    Cursor = Cursors.Default;
                 }
+
+                // 検索結果による分岐処理
+                if (searchResultTable.Rows.Count > 0)
+                {
+                    // 検索結果あり
+                    DataGridView.DataSource = searchResultTable;
+
+                    // ADD_1、ADD_2、ADD_3、ADD_4カラムを非表示にする
+                    DataGridView.Columns["ADD_1"].Visible = false;
+                    DataGridView.Columns["ADD_2"].Visible = false;
+                    DataGridView.Columns["ADD_3"].Visible = false;
+                    DataGridView.Columns["ADD_4"].Visible = false;
+                }
+                else
+                {
+                    // 検索結果なし
+                    DataGridView.DataSource = nothingTable;
+                }
+
+                // マウスカーソルを元に戻す
+                Cursor = Cursors.Default;
             }
             catch (SqlException sqlex)
             {
@@ -399,7 +410,7 @@ namespace hagaki
                     searchResultKanriNoList.Add(rows["KANRI_NO"].ToString());
                 }
 
-                // メンテナンス画面に選択した管理番号を渡す
+                // メンテナンス画面に選択した管理番号と管理番号のみのリストを渡す
                 Frm0500_MAINTENANCE Frm0500_MAINTENANCE = new Frm0500_MAINTENANCE(connectionString, selectedKanriNo, searchResultKanriNoList);
 
                 // メンテナンス画面を開く
